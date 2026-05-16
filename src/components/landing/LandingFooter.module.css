@@ -1,0 +1,47 @@
+.footer {
+  border-top: 1px solid var(--border-glass);
+  padding: 2.5rem 2rem;
+  background: rgba(13, 20, 33, 0.6);
+  backdrop-filter: blur(10px);
+}
+
+.inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+
+.logoMark {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  color: var(--accent-amber);
+  text-shadow: 0 0 10px var(--accent-amber-glow-strong);
+}
+
+.logoText {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.tagline {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.copy {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}

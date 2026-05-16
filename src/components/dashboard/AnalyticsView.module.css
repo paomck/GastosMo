@@ -1,0 +1,225 @@
+.container {
+  animation: fade-up 0.5s var(--ease-out) both;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.iconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-amber-glow);
+  color: var(--accent-amber);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-amber);
+}
+
+.sectionTitle {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+/* Efficiency Gauge */
+.efficiency {
+  padding: 2rem;
+  grid-row: span 2;
+}
+
+.gaugeArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  padding: 1rem 0;
+}
+
+.gauge {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.gaugeBg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 8;
+}
+
+.gaugeValue {
+  fill: none;
+  stroke: var(--accent-amber);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dasharray 1s ease;
+}
+
+.gaugeText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.gaugeNum {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent-amber);
+}
+
+.gaugeLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.statsList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+  border: 1px solid var(--border-glass);
+}
+
+.statLabel {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.statValue {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* Cap Progress */
+.capProgress {
+  padding: 2rem;
+}
+
+.capBar {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.capFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-amber-glow-strong) 0%, var(--accent-amber) 100%);
+  box-shadow: 0 0 15px var(--accent-amber-glow);
+  transition: width 1s ease;
+}
+
+.capGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.capBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid var(--border-glass);
+}
+
+.capBoxLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.capBoxValue {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.capAdvice {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  padding: 1rem;
+  border-left: 3px solid var(--accent-amber);
+  background: var(--accent-amber-glow);
+}
+
+/* Categories Breakdown */
+.categories {
+  padding: 2rem;
+}
+
+.catBars {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.catInfo {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.catLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.catPercent {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.catProgress {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+}
+
+.catFill {
+  height: 100%;
+  background: var(--accent-amber);
+  border-radius: 3px;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,47 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-void);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  animation: fade-in 0.3s var(--ease-out) both;
+}
+
+.logoWrap {
+  display: flex;
+  align-items: baseline;
+}
+
+.logoMark {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  color: var(--accent-amber);
+  text-shadow: 0 0 30px var(--accent-amber-glow-strong);
+  animation: loading-pulse 1.5s ease-in-out infinite;
+}
+
+.logoText {
+  font-family: var(--font-serif);
+  font-size: 2.1rem;
+  color: var(--text-primary);
+  animation: loading-pulse 1.5s ease-in-out infinite 0.2s;
+}
+
+.dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-amber);
+  border-radius: 50%;
+}
+
+.dot1 { animation: loading-pulse 1.2s ease-in-out infinite 0s; }
+.dot2 { animation: loading-pulse 1.2s ease-in-out infinite 0.2s; }
+.dot3 { animation: loading-pulse 1.2s ease-in-out infinite 0.4s; }
