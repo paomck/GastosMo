@@ -12,7 +12,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm ci
+      
+      # ⬇️ WE ADDED THE ENV BLOCK DIRECTLY BELOW THE BUILD STEP ⬇️
       - run: npm run build
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          # If your app uses more Firebase config strings (like storageBucket or appId), add them right here!
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
