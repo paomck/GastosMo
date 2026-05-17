@@ -24,6 +24,8 @@ export function useUserSettings(userId: string) {
     const unsub = subscribeToUserSettings(userId, (data) => {
       if (data && data.creditLimits) {
         setSettings(data);
+      } else {
+        setSettings({ creditLimits: DEFAULT_LIMITS });
       }
       setLoading(false);
     });

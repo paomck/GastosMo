@@ -102,14 +102,14 @@ export default function CardsView({ userId, userLimits, onSaveLimits }: CardsVie
               <tbody>
                 {CARD_ORDER.map(id => (
                   <tr key={id}>
-                    <td className={styles.cardNameCell}>
+                    <td data-label="Card" className={styles.cardNameCell}>
                       <div className={styles.dot} style={{ background: CARDS[id].grad[1] }} />
                       <div className={styles.cardNameStack}>
                         <span className={styles.bankName}>{CARDS[id].bank}</span>
                         <span className={styles.cardName}>{CARDS[id].name}</span>
                       </div>
                     </td>
-                    <td className={styles.limitText}>
+                    <td data-label="Limit" className={styles.limitText}>
                       {editingLimitId === id ? (
                         <div className={styles.editWrap}>
                           <input 
@@ -131,7 +131,7 @@ export default function CardsView({ userId, userLimits, onSaveLimits }: CardsVie
                         </div>
                       )}
                     </td>
-                    <td>
+                    <td data-label="Utilization">
                       <div className={styles.utilizationWrap}>
                          <div className={styles.utilBar}>
                             <div className={styles.utilFill} style={{ width: '15%', background: CARDS[id].grad[1] }} />
@@ -139,7 +139,7 @@ export default function CardsView({ userId, userLimits, onSaveLimits }: CardsVie
                          <span className={styles.utilPercent}>15%</span>
                       </div>
                     </td>
-                    <td className={styles.rewardText}>{CARDS[id].rewardLabel}</td>
+                    <td data-label="Reward" className={styles.rewardText}>{CARDS[id].rewardLabel}</td>
                   </tr>
                 ))}
               </tbody>

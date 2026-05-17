@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import styles from './RecentTransactions.module.css';
 import { deleteTransaction, type Transaction } from '@/lib/firestore';
 import { CARDS, getCardCycleStatus, type CardId } from '@/lib/cards';
@@ -24,6 +24,12 @@ export default function RecentTransactions({
   onDelete,
   ewRebateEarned
 }: RecentTransactionsProps) {
+  const [visibleCount, setVisibleCount] = useState(8);
+
+  // Reset pagination when active card filter changes
+  useEffect(() => {
+    setVisibleCount(8);
+  }, [selectedCardId]);
   
   const filteredTransactions = useMemo(() => {
     if (!selectedCardId) return transactions;
@@ -85,14 +91,16 @@ export default function RecentTransactions({
               </tr>
             </thead>
             <tbody>
-              {filteredTransactions.slice(0, 15).map((t) => (
+              {filteredTransactions.slice(0, visibleCount).map((t) => (
                 <tr key={t.id}>
-                  <td>{t.date.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
-                  <td>
-                    <div className={styles.merchant}>{t.merchant}</div>
-                    <div className={styles.category}>{t.category}</div>
+                  <td data-label="Date">{t.date.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
+                  <td data-label="Merchant">
+                    <div className={styles.merchantStack}>
+                      <div className={styles.merchant}>{t.merchant}</div>
+                      <div className={styles.category}>{t.category}</div>
+                    </div>
                   </td>
-                  <td>
+                  <td data-label="Card">
                     <span 
                       className={styles.cardBadge} 
                       style={{ background: CARDS[t.cardId].grad[1] }}
@@ -100,7 +108,7 @@ export default function RecentTransactions({
                       {CARDS[t.cardId].network}
                     </span>
                   </td>
-                  <td style={{ textAlign: 'center' }}>
+                  <td data-label="Rate" style={{ textAlign: 'center' }}>
                     {t.cardId === 'eastwest' ? (
                       <span className={`${styles.rateBadge} ${t.rebateEarned / t.amount > 0.01 ? styles.highRate : styles.lowRate}`}>
                         {t.rebateEarned / t.amount > 0.01 ? '8.88%' : '0.30%'}
@@ -111,7 +119,7 @@ export default function RecentTransactions({
                       </span>
                     )}
                   </td>
-                  <td style={{ textAlign: 'right' }}>
+                  <td data-label="Log" style={{ textAlign: 'right' }}>
                     <div className={styles.spendRow}>
                       <span className={styles.spent}>₱{t.amount.toLocaleString('en-PH', { minimumFractionDigits: 0 })} spent</span>
                       <span className={styles.arrow}>→</span>
@@ -122,7 +130,7 @@ export default function RecentTransactions({
                       )}
                     </div>
                   </td>
-                  <td style={{ textAlign: 'center' }}>
+                  <td data-label="Actions" style={{ textAlign: 'center' }}>
                     <div className={styles.actionBtns}>
                       <button 
                         className={styles.actionBtn} 
@@ -144,6 +152,17 @@ export default function RecentTransactions({
               ))}
             </tbody>
           </table>
+
+          {filteredTransactions.length > visibleCount && (
+            <div className={styles.loadMoreWrap}>
+              <button 
+                className={styles.loadMoreBtn} 
+                onClick={() => setVisibleCount(prev => prev + 8)}
+              >
+                Load More
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

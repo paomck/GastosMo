@@ -3,6 +3,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .header {
@@ -100,4 +103,23 @@
   font-weight: 700;
   color: var(--text-muted);
   margin: 0 -2px;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1.25rem 1rem;
+  }
+  .digit {
+    font-size: 1.25rem;
+    padding: 0 1px;
+  }
+  .separator {
+    font-size: 1.25rem;
+  }
+  .currency {
+    font-size: 0.95rem;
+  }
+  .odometer {
+    padding: 8px;
+  }
 }

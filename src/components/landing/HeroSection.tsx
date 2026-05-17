@@ -6,7 +6,11 @@ import AuthModal from '@/components/auth/AuthModal';
 import styles from './HeroSection.module.css';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  onGoToDashboard?: () => void;
+}
+
+export default function HeroSection({ onGoToDashboard }: HeroSectionProps) {
   const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -44,7 +48,17 @@ export default function HeroSection() {
 
           {/* CTA */}
           <div className={`${styles.ctaGroup} animate-fade-up delay-300`}>
-            {!user && (
+            {user ? (
+              onGoToDashboard && (
+                <button
+                  className="btn-primary"
+                  onClick={onGoToDashboard}
+                >
+                  Go to Command Center
+                  <ArrowRight size={18} />
+                </button>
+              )
+            ) : (
               <button
                 id="hero-login-btn"
                 className="btn-primary"
@@ -63,7 +77,7 @@ export default function HeroSection() {
           <div className={`${styles.trust} animate-fade-up delay-400`}>
             <span className={styles.trustItem}>
               <span className={styles.trustDot} />
-              Secure Firebase Auth
+              Bank-Grade Authentication
             </span>
             <span className={styles.trustDivider}>·</span>
             <span className={styles.trustItem}>

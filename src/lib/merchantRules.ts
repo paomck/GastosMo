@@ -83,8 +83,6 @@ export const MERCHANT_OVERRIDES: Record<string, boolean> = {
   'razer': true,
   'aa bbq': true,
   'boy belly': true,
-
-  'boy belly': true,
   'contis': true,
   'starbucks': true,
   'jollibee': true,
@@ -218,7 +216,6 @@ export const MERCHANT_OVERRIDES: Record<string, boolean> = {
   'anytime fitness': false,
   'tax': false,
   'government': false,
-  'myeg': false,
   'sm ticket': false,
 };
 

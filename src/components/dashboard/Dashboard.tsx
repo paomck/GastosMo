@@ -18,7 +18,11 @@ import DeleteConfirmModal from './DeleteConfirmModal';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { deleteTransaction, type Transaction } from '@/lib/firestore';
 
-export default function Dashboard() {
+interface DashboardProps {
+  onGoToLanding?: () => void;
+}
+
+export default function Dashboard({ onGoToLanding }: DashboardProps) {
   const { user, logout } = useAuth();
   const { all, thisMonth, stats, loading: txLoading } = useTransactions(user?.uid || '');
   const { settings, loading: settingsLoading, saveLimits } = useUserSettings(user?.uid || '');
@@ -28,21 +32,41 @@ export default function Dashboard() {
   const [selectedCardId, setSelectedCardId] = useState<CardId | null>(null);
   const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
   const [deletingTxn, setDeletingTxn] = useState<Transaction | null>(null);
-
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+ 
   if (loading) return <LoadingScreen />;
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Romar';
+    if (hour < 12) return `Good morning, ${firstName}`;
+    if (hour < 17) return `Good afternoon, ${firstName}`;
+    return `Good evening, ${firstName}`;
+  };
+ 
   const handleDelete = async () => {
     if (deletingTxn?.id) {
       await deleteTransaction(deletingTxn.id);
       setDeletingTxn(null);
     }
   };
-
+ 
   return (
     <div className={styles.page}>
+      {/* Mobile Top Header */}
+      <div className={styles.mobileHeader}>
+        <div className={styles.mobileLogo} onClick={onGoToLanding} style={{ cursor: 'pointer' }}>
+          <span className={styles.logoMark}>G</span>
+          <span className={styles.logoText}>astosMo</span>
+        </div>
+        <button className={styles.mobileLogoutBtn} onClick={() => setShowLogoutConfirm(true)}>
+          <LogOut size={18} />
+        </button>
+      </div>
+ 
       {/* Sidebar */}
       <aside className={styles.sidebar}>
-        <div className={styles.sidebarLogo}>
+        <div className={styles.sidebarLogo} onClick={onGoToLanding} style={{ cursor: 'pointer' }}>
           <span className={styles.logoMark}>G</span>
           <span className={styles.logoText}>astosMo</span>
         </div>
@@ -71,7 +95,7 @@ export default function Dashboard() {
           </button>
         </nav>
 
-        <button className={styles.logoutBtn} onClick={logout}>
+        <button className={styles.logoutBtn} onClick={() => setShowLogoutConfirm(true)}>
           <LogOut size={16} />
           Sign Out
         </button>
@@ -82,9 +106,8 @@ export default function Dashboard() {
         <header className={styles.header}>
           <div className="animate-fade-up">
             <h1 className={styles.greeting}>
-              {currentView === 'dashboard' ? 'Command Center' : 
-               currentView === 'cards' ? 'Fleet Management' : 'The Treasury Report'}
-              {user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}
+              {currentView === 'dashboard' ? getGreeting() : 
+               currentView === 'cards' ? 'Card Management' : 'The Treasury Report'}
             </h1>
             <p className={styles.subGreeting}>
               {currentView === 'dashboard' ? 'Maximize every swipe with intelligent multi-card tracking.' :
@@ -175,6 +198,23 @@ export default function Dashboard() {
             merchant={deletingTxn.merchant}
             amount={deletingTxn.amount}
           />
+        )}
+
+        {showLogoutConfirm && (
+          <div className={styles.confirmOverlay} onClick={() => setShowLogoutConfirm(false)}>
+            <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
+              <h3 className={styles.confirmTitle}>Confirm Sign Out</h3>
+              <p className={styles.confirmText}>Are you sure you want to sign out of GastosMo?</p>
+              <div className={styles.confirmActions}>
+                <button className={styles.logoutConfirmBtn} onClick={logout}>
+                  Sign Out
+                </button>
+                <button className={styles.cancelConfirmBtn} onClick={() => setShowLogoutConfirm(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>

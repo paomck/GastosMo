@@ -18,7 +18,10 @@ export function useTransactions(userId: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     const unsub = subscribeToTransactions(userId, (txns) => {
       setAll(txns);
       setLoading(false);

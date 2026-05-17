@@ -28,10 +28,17 @@ export function subscribeToTransactions(
     where('userId', '==', userId),
     orderBy('date', 'desc'),
   );
-  return onSnapshot(q, (snap) => {
-    const txns = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction));
-    onData(txns);
-  });
+  return onSnapshot(
+    q,
+    (snap) => {
+      const txns = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction));
+      onData(txns);
+    },
+    (err) => {
+      console.error('Error subscribing to transactions:', err);
+      onData([]);
+    }
+  );
 }
 
 export async function addTransaction(txn: Omit<Transaction, 'id'>): Promise<void> {
@@ -72,12 +79,21 @@ export async function updateUserSettings(userId: string, settings: Partial<UserS
 
 export function subscribeToUserSettings(
   userId: string,
-  onData: (settings: UserSettings) => void,
+  onData: (settings: UserSettings | null) => void,
 ): Unsubscribe {
   const ref = doc(db, 'settings', userId);
-  return onSnapshot(ref, (snap) => {
-    if (snap.exists()) {
-      onData(snap.data() as UserSettings);
+  return onSnapshot(
+    ref,
+    (snap) => {
+      if (snap.exists()) {
+        onData(snap.data() as UserSettings);
+      } else {
+        onData(null);
+      }
+    },
+    (err) => {
+      console.error('Error subscribing to user settings:', err);
+      onData(null);
     }
-  });
+  );
 }

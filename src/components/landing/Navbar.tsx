@@ -5,7 +5,11 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import AuthModal from '@/components/auth/AuthModal';
 import styles from './Navbar.module.css';
 
-export default function Navbar() {
+interface NavbarProps {
+  onGoToDashboard?: () => void;
+}
+
+export default function Navbar({ onGoToDashboard }: NavbarProps) {
   const { user, logout } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -22,9 +26,16 @@ export default function Navbar() {
           {/* Right side */}
           <div className={styles.actions}>
             {user ? (
-              <button className="btn-ghost" onClick={logout}>
-                Sign Out
-              </button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <button className="btn-ghost" onClick={logout} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+                  Sign Out
+                </button>
+                {onGoToDashboard && (
+                  <button className="btn-primary" onClick={onGoToDashboard} style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
+                    Dashboard
+                  </button>
+                )}
+              </div>
             ) : (
               <button
                 id="navbar-login-btn"

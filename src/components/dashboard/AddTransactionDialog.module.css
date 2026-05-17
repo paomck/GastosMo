@@ -24,13 +24,19 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(7, 11, 20, 0.85);
-  backdrop-filter: blur(8px);
+  background: rgba(6, 9, 17, 0.95);
   z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .overlay {
+    background: rgba(7, 11, 20, 0.85);
+    backdrop-filter: blur(8px);
+  }
 }
 
 .modal {
@@ -194,4 +200,31 @@ select.input {
   background-color: var(--bg-surface);
   color: var(--text-primary);
   padding: 10px;
+}
+
+@media (max-width: 768px) {
+  .fab {
+    bottom: 5.25rem;
+    right: 1.25rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    box-shadow: 0 4px 16px var(--accent-amber-glow-strong);
+  }
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+  .modal {
+    padding: 1.5rem 1rem;
+  }
+  .cardChips {
+    gap: 0.25rem;
+  }
+  .cardChip {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
 }

@@ -18,4 +18,8 @@
 
 .cardItem {
   transition: transform 0.3s var(--ease-out);
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
 }

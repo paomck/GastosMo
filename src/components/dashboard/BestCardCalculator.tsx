@@ -6,6 +6,7 @@ import { Calculator, ChevronRight, Sparkles } from 'lucide-react';
 
 interface BestCardCalculatorProps {
   ewRebateEarned: number;
+  userLimits: Record<string, number>;
 }
 
 const CATEGORIES: { value: TransactionCategory; label: string }[] = [
@@ -17,7 +18,7 @@ const CATEGORIES: { value: TransactionCategory; label: string }[] = [
   { value: 'other', label: 'Other' },
 ];
 
-export default function BestCardCalculator({ ewRebateEarned }: BestCardCalculatorProps) {
+export default function BestCardCalculator({ ewRebateEarned, userLimits }: BestCardCalculatorProps) {
   const [amount, setAmount] = useState<string>('1000');
   const [category, setCategory] = useState<TransactionCategory>('dining');
 
@@ -35,10 +36,17 @@ export default function BestCardCalculator({ ewRebateEarned }: BestCardCalculato
     // Diamond Logic
     const diamondPoints = Math.floor(num / (CARDS['bdo-diamond'].pointDivisor || 1000));
 
-    // Recommendation
+    // Recommendation logic: Pick the one with highest value
     let bestId: CardId = 'eastwest';
+    
+    // Simple heuristic for now: 
+    // If EW is capped or category is not high-reward, prefer Amex.
+    // If Amex points are somehow less than Diamond (rare), prefer Diamond.
     if (ewRemaining <= 0 || (category !== 'dining' && category !== 'groceries' && ewActual < amexPoints)) {
        bestId = 'bdo-amex';
+       if (diamondPoints > amexPoints) {
+         bestId = 'bdo-diamond';
+       }
     }
 
     return { ewActual, amexPoints, diamondPoints, bestId };
