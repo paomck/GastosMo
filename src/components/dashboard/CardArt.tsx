@@ -4,26 +4,30 @@ import styles from './CardArt.module.css';
 import { CARDS, getCardCycleStatus, type CardId } from '@/lib/cards';
 import { Calendar, CreditCard as CardIcon, Info } from 'lucide-react';
 
+import type { UserCardConfig } from '@/lib/firestore';
+
 interface CardArtProps {
   cardId: CardId;
   monthSpend?: number;
   rewardEarned?: number;
   creditLimit?: number;
+  userConfig?: UserCardConfig;
   active?: boolean;
   onClick?: () => void;
 }
 
-const LAST4: Record<CardId, string> = {
+const LAST4: Record<string, string> = {
   eastwest: '7890', 'bdo-amex': '1234', 'bdo-diamond': '4321',
 };
 
-export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, creditLimit, active, onClick }: CardArtProps) {
+export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, creditLimit, userConfig, active, onClick }: CardArtProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const card = CARDS[cardId];
   const actualLimit = creditLimit || card.creditLimit;
   const [c1, c2, c3] = card.grad;
   const isLight = cardId === 'bdo-amex';
-  const { status, closeDate, dueDate } = getCardCycleStatus(cardId);
+  const { status, closeDate, dueDate } = getCardCycleStatus(cardId, userConfig);
+  const last4 = LAST4[cardId] || '8888';
 
   const toggleFlip = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -65,7 +69,7 @@ export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, cred
         <div className={`${styles.chip} ${isLight ? styles.chipDark : styles.chipGold}`}>
           <div className={styles.chipLines} />
         </div>
-        {cardId !== 'bdo-amex' && (
+        {card.network !== 'AMEX' && (
           <svg className={styles.contactless} viewBox="0 0 24 24" fill="none">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10" stroke={card.textColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
             <path d="M12 6C8.69 6 6 8.69 6 12s2.69 6 6 6 6-2.69 6-6" stroke={card.textColor} strokeWidth="1.5" strokeLinecap="round" opacity="0.75"/>
@@ -76,7 +80,7 @@ export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, cred
 
       {/* Card number */}
       <div className={styles.number} style={{ color: card.textColor }}>
-        •••• &nbsp; •••• &nbsp; •••• &nbsp; {LAST4[cardId]}
+        •••• &nbsp; •••• &nbsp; •••• &nbsp; {last4}
       </div>
 
       {/* Bottom row */}
@@ -90,9 +94,9 @@ export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, cred
         <div style={{ textAlign: 'right' }}>
           <div className={styles.label} style={{ color: card.mutedColor }}>{card.pointsLabel}</div>
           <div className={styles.value} style={{ color: card.textColor }}>
-            {cardId === 'eastwest'
+            {card.pointsLabel === 'cashback'
               ? `₱${rewardEarned.toFixed(2)}`
-              : `${Math.round(rewardEarned)} pts`}
+              : `${Math.round(rewardEarned)}`}
           </div>
         </div>
       </div>
@@ -187,6 +191,14 @@ function NetworkBadge({ network, textColor, isLight }: { network: string; textCo
   if (network === 'AMEX') return (
     <span className={styles.networkAmex} style={{ color: textColor }}>AMERICAN<br/>EXPRESS</span>
   );
+  if (network === 'MASTERCARD') return (
+    <div style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+      <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#EB001B', mixBlendMode: 'screen' }} />
+      <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#F79E1B', marginLeft: -6, mixBlendMode: 'screen' }} />
+      <span style={{ color: textColor, fontSize: '0.6rem', fontWeight: 600, marginLeft: 4 }}>mastercard</span>
+    </div>
+  );
+  if (network === 'DIGITAL') return null;
   return (
     <div className={styles.networkUp}>
       <span style={{ background: '#CC0000', color: '#fff', padding: '1px 5px', borderRadius: 3, fontSize: '0.6rem', fontWeight: 700 }}>CUP</span>

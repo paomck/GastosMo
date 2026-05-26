@@ -8,7 +8,7 @@ interface WalletHUDProps {
   stats: MonthlyStats;
   onSelectCard: (id: CardId) => void;
   activeCardId?: CardId;
-  userLimits: Record<string, number>;
+  userLimits: Record<string, import('@/lib/firestore').UserCardConfig>;
 }
 
 export default function WalletHUD({ stats, onSelectCard, activeCardId, userLimits }: WalletHUDProps) {
@@ -16,20 +16,9 @@ export default function WalletHUD({ stats, onSelectCard, activeCardId, userLimit
     <div className={styles.hud}>
       <h2 className={styles.title}>Your Wallet</h2>
       <div className={styles.stack}>
-        {CARD_ORDER.map((id) => {
-          let spend = 0;
-          let reward = 0;
-
-          if (id === 'eastwest') {
-            spend = stats.ewSpend;
-            reward = stats.ewRebate;
-          } else if (id === 'bdo-amex') {
-            spend = stats.amexSpend;
-            reward = stats.amexPoints;
-          } else if (id === 'bdo-diamond') {
-            spend = stats.diamondSpend;
-            reward = stats.diamondPoints;
-          }
+        {CARD_ORDER.filter((id) => id in userLimits).map((id) => {
+          const spend = stats.cardStats?.[id]?.spend || 0;
+          const reward = stats.cardStats?.[id]?.reward || 0;
 
           return (
             <div key={id} className={styles.cardItem}>
@@ -37,7 +26,8 @@ export default function WalletHUD({ stats, onSelectCard, activeCardId, userLimit
                 cardId={id}
                 monthSpend={spend}
                 rewardEarned={reward}
-                creditLimit={userLimits[id]}
+                creditLimit={userLimits[id]?.limit}
+                userConfig={userLimits[id]}
                 active={activeCardId === id}
                 onClick={() => onSelectCard(id)}
               />

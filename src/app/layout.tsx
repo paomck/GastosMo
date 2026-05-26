@@ -10,12 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'GastosMo — Command Your Credit. Maximize Every Swipe.',
+  title: 'GastosMo',
   description:
     'The intelligent multi-card dashboard. Track rebates, avoid fees, and always know which card to draw.',
   metadataBase: new URL('https://gastosmo.com'),
   openGraph: {
-    title: 'GastosMo — Command Your Credit. Maximize Every Swipe.',
+    title: 'GastosMo',
     description:
       'The intelligent multi-card dashboard. Track rebates, avoid fees, and always know which card to draw.',
     type: 'website',

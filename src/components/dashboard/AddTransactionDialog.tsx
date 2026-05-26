@@ -12,6 +12,7 @@ interface AddTransactionDialogProps {
   ewRebateEarned: number;
   initialTransaction?: Transaction;
   onClose?: () => void;
+  userLimits?: Record<string, number>;
 }
 
 const CATEGORIES: { value: TransactionCategory; label: string }[] = [
@@ -20,13 +21,20 @@ const CATEGORIES: { value: TransactionCategory; label: string }[] = [
   { value: 'shopping', label: 'Shopping' },
   { value: 'travel', label: 'Travel' },
   { value: 'bills', label: 'Bills' },
+  { value: 'transportation', label: 'Transportation/Auto' },
   { value: 'other', label: 'Other' },
 ];
 
-export default function AddTransactionDialog({ userId, ewRebateEarned, initialTransaction, onClose }: AddTransactionDialogProps) {
+export default function AddTransactionDialog({ userId, ewRebateEarned, initialTransaction, onClose, userLimits }: AddTransactionDialogProps) {
   const [isOpen, setIsOpen] = useState(!!initialTransaction);
   const [loading, setLoading] = useState(false);
-  const [cardId, setCardId] = useState<CardId>(initialTransaction?.cardId || 'eastwest');
+
+  const activeCardIds = userLimits ? CARD_ORDER.filter(id => id in userLimits) : CARD_ORDER;
+  const defaultCardId = activeCardIds.includes(initialTransaction?.cardId || 'eastwest')
+    ? (initialTransaction?.cardId || 'eastwest')
+    : (activeCardIds[0] || 'eastwest');
+
+  const [cardId, setCardId] = useState<CardId>(defaultCardId);
   const [amount, setAmount] = useState(initialTransaction?.amount.toString() || '');
   const [merchant, setMerchant] = useState(initialTransaction?.merchant || '');
   const [category, setCategory] = useState<TransactionCategory>(initialTransaction?.category || 'dining');
@@ -121,7 +129,7 @@ export default function AddTransactionDialog({ userId, ewRebateEarned, initialTr
           <div className={styles.inputGroup}>
             <label className={styles.label}>Select Card</label>
             <div className={styles.cardChips}>
-              {CARD_ORDER.map((id) => (
+              {activeCardIds.map((id) => (
                 <button
                   key={id}
                   type="button"

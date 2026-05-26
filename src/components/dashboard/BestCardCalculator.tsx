@@ -6,7 +6,7 @@ import { Calculator, ChevronRight, Sparkles } from 'lucide-react';
 
 interface BestCardCalculatorProps {
   ewRebateEarned: number;
-  userLimits: Record<string, number>;
+  userLimits: Record<string, import('@/lib/firestore').UserCardConfig>;
 }
 
 const CATEGORIES: { value: TransactionCategory; label: string }[] = [

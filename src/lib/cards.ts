@@ -1,6 +1,23 @@
-export type CardId = 'eastwest' | 'bdo-amex' | 'bdo-diamond';
-export type TransactionCategory = 'dining' | 'groceries' | 'shopping' | 'travel' | 'bills' | 'other';
+export type CardId =
+  | 'eastwest'
+  | 'bdo-amex'
+  | 'bdo-diamond'
+  | 'bpi-amore-cashback'
+  | 'hsbc-live-plus'
+  | 'sb-complete-cashback'
+  | 'ub-cashback-plat'
+  | 'bdo-amex-explorer'
+  | 'bpi-visa-sig'
+  | 'ew-sia-krisflyer'
+  | 'ub-rewards-plat'
+  | 'metro-titanium-mc'
+  | 'rcbc-black-plat'
+  | 'rcbc-miles-sig'
+  | 'shopee-pay-later';
+
+export type TransactionCategory = 'dining' | 'groceries' | 'shopping' | 'travel' | 'bills' | 'transportation' | 'other';
 import { checkMerchantEligibility } from './merchantRules';
+import type { UserCardConfig } from './firestore';
 
 export interface CardDef {
   id: CardId;
@@ -22,6 +39,7 @@ export interface CardDef {
 }
 
 export const CARDS: Record<CardId, CardDef> = {
+  // --- ORIGINAL FLEET ---
   'eastwest': {
     id: 'eastwest', name: 'Visa Platinum', bank: 'EastWest', network: 'VISA',
     rewardLabel: '8.88% Cashback', grad: ['#3D0066', '#8B1585', '#C21A9A'],
@@ -43,9 +61,111 @@ export const CARDS: Record<CardId, CardDef> = {
     pointDivisor: 1000, pointsLabel: 'Peso Points',
     closeDay: 9, dueOffset: 25, creditLimit: 150000,
   },
+
+  // --- ADDED PRESTIGE DIRECTORY ---
+  'bpi-amore-cashback': {
+    id: 'bpi-amore-cashback', name: 'Amore Cashback', bank: 'BPI', network: 'VISA',
+    rewardLabel: '4% Groceries / 1% Bills', grad: ['#A81C1C', '#D83F3F', '#F07575'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    rebateRate: 0.04, rebateCap: 1250, pointsLabel: 'cashback',
+    closeDay: 20, dueOffset: 20, creditLimit: 80000,
+  },
+  'hsbc-live-plus': {
+    id: 'hsbc-live-plus', name: 'Live+ Credit Card', bank: 'HSBC', network: 'VISA',
+    rewardLabel: '8% Dining & Shopping', grad: ['#B20E10', '#E22026', '#FF6368'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.65)',
+    rebateRate: 0.08, rebateCap: 1000, pointsLabel: 'cashback',
+    closeDay: 18, dueOffset: 22, creditLimit: 120000,
+  },
+  'sb-complete-cashback': {
+    id: 'sb-complete-cashback', name: 'Complete Cashback', bank: 'Security Bank', network: 'MASTERCARD',
+    rewardLabel: 'Up to 5% Cashback', grad: ['#003366', '#005CB9', '#338AE5'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    rebateRate: 0.05, rebateCap: 1000, pointsLabel: 'cashback',
+    closeDay: 10, dueOffset: 21, creditLimit: 100000,
+  },
+  'ub-cashback-plat': {
+    id: 'ub-cashback-plat', name: 'Cash Back Platinum', bank: 'UnionBank', network: 'VISA',
+    rewardLabel: '1.5% Unlimited Cashback', grad: ['#0C2340', '#1D4ED8', '#60A5FA'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    rebateRate: 0.015, pointsLabel: 'cashback',
+    closeDay: 25, dueOffset: 25, creditLimit: 150000,
+  },
+  'bdo-amex-explorer': {
+    id: 'bdo-amex-explorer', name: 'Amex Explorer', bank: 'BDO', network: 'AMEX',
+    rewardLabel: '1 mile / ₱40 spend', grad: ['#00778B', '#00A3C4', '#4CD3E3'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.65)',
+    pointDivisor: 40, pointsLabel: 'Miles',
+    closeDay: 9, dueOffset: 25, creditLimit: 200000,
+  },
+  'bpi-visa-sig': {
+    id: 'bpi-visa-sig', name: 'Visa Signature', bank: 'BPI', network: 'VISA',
+    rewardLabel: '1 pt / ₱20 (1.85% Forex)', grad: ['#3A0007', '#730014', '#B0263E'],
+    textColor: '#E8D3A7', mutedColor: 'rgba(232,211,167,0.6)',
+    pointDivisor: 20, pointsLabel: 'BPI Points',
+    closeDay: 5, dueOffset: 20, creditLimit: 300000,
+  },
+  'ew-sia-krisflyer': {
+    id: 'ew-sia-krisflyer', name: 'KrisFlyer World', bank: 'EastWest', network: 'MASTERCARD',
+    rewardLabel: '1 mile / ₱12 spend', grad: ['#0B1B3D', '#1B365D', '#4B6B94'],
+    textColor: '#D4AF37', mutedColor: 'rgba(212,175,55,0.6)',
+    pointDivisor: 12, pointsLabel: 'KF Miles',
+    closeDay: 15, dueOffset: 25, creditLimit: 500000,
+  },
+  'ub-rewards-plat': {
+    id: 'ub-rewards-plat', name: 'Rewards Visa Platinum', bank: 'UnionBank', network: 'VISA',
+    rewardLabel: '1 pt / ₱30 (3x Dining)', grad: ['#1A1A1A', '#333333', '#666666'],
+    textColor: '#F59E0B', mutedColor: 'rgba(245,158,11,0.55)',
+    pointDivisor: 30, pointsLabel: 'UB Points',
+    closeDay: 17, dueOffset: 25, creditLimit: 750000,
+  },
+  'metro-titanium-mc': {
+    id: 'metro-titanium-mc', name: 'Titanium Mastercard', bank: 'Metrobank', network: 'MASTERCARD',
+    rewardLabel: '1 pt / ₱20 (2x Spend)', grad: ['#1F2937', '#4B5563', '#9CA3AF'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 20, pointsLabel: 'Metro Points',
+    closeDay: 2, dueOffset: 21, creditLimit: 60000,
+  },
+  'rcbc-black-plat': {
+    id: 'rcbc-black-plat', name: 'Black Card Platinum', bank: 'RCBC', network: 'MASTERCARD',
+    rewardLabel: '1 pt / ₱36 spend', grad: ['#0E1111', '#1C2321', '#3A3F3F'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.5)',
+    pointDivisor: 36, pointsLabel: 'RCBC Points',
+    closeDay: 15, dueOffset: 25, creditLimit: 250000,
+  },
+  'rcbc-miles-sig': {
+    id: 'rcbc-miles-sig', name: 'Visa Platinum Airmiles', bank: 'RCBC', network: 'VISA',
+    rewardLabel: '1 mile / ₱25 spend', grad: ['#1C3D5A', '#2B6CB0', '#4299E1'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 25, pointsLabel: 'Preferred Miles',
+    closeDay: 15, dueOffset: 25, creditLimit: 180000,
+  },
+  'shopee-pay-later': {
+    id: 'shopee-pay-later', name: 'SPayLater', bank: 'Shopee', network: 'DIGITAL',
+    rewardLabel: '0% Installment Promos', grad: ['#EE4D2D', '#FF7337', '#FF9668'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.7)',
+    pointDivisor: 100, pointsLabel: 'Shopee Coins',
+    closeDay: 24, dueDay: 5, creditLimit: 50000,
+  },
 };
 
-export const CARD_ORDER: CardId[] = ['eastwest', 'bdo-amex', 'bdo-diamond'];
+export const CARD_ORDER: CardId[] = [
+  'eastwest',
+  'bdo-amex',
+  'bdo-diamond',
+  'bpi-amore-cashback',
+  'hsbc-live-plus',
+  'sb-complete-cashback',
+  'ub-cashback-plat',
+  'bdo-amex-explorer',
+  'bpi-visa-sig',
+  'ew-sia-krisflyer',
+  'ub-rewards-plat',
+  'metro-titanium-mc',
+  'rcbc-black-plat',
+  'rcbc-miles-sig',
+  'shopee-pay-later',
+];
 
 export const EASTWEST_CAP = 1250;
 export const EASTWEST_RATE = 0.0888;
@@ -60,6 +180,33 @@ export function calcEastwestRebate(amount: number, alreadyEarned: number, mercha
 
 export function calcPoints(amount: number, divisor: number): number {
   return Math.floor(amount / divisor);
+}
+
+export function calcCardReward(
+  cardId: CardId,
+  amount: number,
+  alreadyEarned: number,
+  merchantName: string = '',
+  category: string = ''
+): { reward: number; type: 'cashback' | 'points' } {
+  const card = CARDS[cardId];
+  if (!card) return { reward: 0, type: 'points' };
+
+  if (card.pointsLabel === 'cashback') {
+    if (cardId === 'eastwest') {
+      const earned = calcEastwestRebate(amount, alreadyEarned, merchantName, category);
+      return { reward: earned, type: 'cashback' };
+    }
+    const rate = card.rebateRate || 0.01;
+    const cap = card.rebateCap !== undefined ? card.rebateCap : Infinity;
+    const remaining = Math.max(0, cap - alreadyEarned);
+    const earned = Math.min(amount * rate, remaining);
+    return { reward: earned, type: 'cashback' };
+  } else {
+    const divisor = card.pointDivisor || 30;
+    const earned = calcPoints(amount, divisor);
+    return { reward: earned, type: 'points' };
+  }
 }
 
 export function getSmartRecommendation(ewRebateEarned: number): {
@@ -83,7 +230,7 @@ export function getSmartRecommendation(ewRebateEarned: number): {
 
 export type CycleStatus = 'green' | 'yellow' | 'red';
 
-export function getCardCycleStatus(cardId: CardId): { 
+export function getCardCycleStatus(cardId: CardId, userConfig?: UserCardConfig): { 
   status: CycleStatus; 
   closeDate: Date; 
   dueDate: Date; 
@@ -93,38 +240,42 @@ export function getCardCycleStatus(cardId: CardId): {
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
+  const closeDay = userConfig?.closeDay ?? card.closeDay;
+  const dueDay = userConfig?.dueDay ?? card.dueDay;
+  const dueOffset = userConfig?.dueOffset ?? card.dueOffset;
+
   // 1. Determine the "Target" Closing Date for a transaction made TODAY
-  let targetClose = new Date(currentYear, currentMonth, card.closeDay);
+  let targetClose = new Date(currentYear, currentMonth, closeDay);
   
   // If today is past this month's closing day, the transaction belongs to NEXT month's cycle
-  if (now.getDate() > card.closeDay) {
-    targetClose = new Date(currentYear, currentMonth + 1, card.closeDay);
+  if (now.getDate() > closeDay) {
+    targetClose = new Date(currentYear, currentMonth + 1, closeDay);
   }
 
   // 2. Calculate the Due Date for THAT specific target closing date
   let targetDue: Date;
-  if (card.dueDay) {
+  if (dueDay) {
     // Fixed due day (usually follows the close day, potentially in the next month)
-    const dueMonthOffset = card.dueDay < card.closeDay ? 1 : 0;
-    targetDue = new Date(targetClose.getFullYear(), targetClose.getMonth() + dueMonthOffset, card.dueDay);
+    const dueMonthOffset = dueDay < closeDay ? 1 : 0;
+    targetDue = new Date(targetClose.getFullYear(), targetClose.getMonth() + dueMonthOffset, dueDay);
   } else {
     // Variable due date (e.g., 25 days after close)
-    targetDue = new Date(targetClose.getTime() + (card.dueOffset || 0) * 24 * 60 * 60 * 1000);
+    targetDue = new Date(targetClose.getTime() + (dueOffset || 0) * 24 * 60 * 60 * 1000);
   }
 
   // 3. Determine Status Light
   // We check the status relative to the "Upcoming" payment (the one that JUST closed)
-  let upcomingClose = new Date(currentYear, currentMonth, card.closeDay);
-  if (now.getDate() <= card.closeDay) {
-    upcomingClose = new Date(currentYear, currentMonth - 1, card.closeDay);
+  let upcomingClose = new Date(currentYear, currentMonth, closeDay);
+  if (now.getDate() <= closeDay) {
+    upcomingClose = new Date(currentYear, currentMonth - 1, closeDay);
   }
   
   let upcomingDue: Date;
-  if (card.dueDay) {
-    const dueMonthOffset = card.dueDay < card.closeDay ? 1 : 0;
-    upcomingDue = new Date(upcomingClose.getFullYear(), upcomingClose.getMonth() + dueMonthOffset, card.dueDay);
+  if (dueDay) {
+    const dueMonthOffset = dueDay < closeDay ? 1 : 0;
+    upcomingDue = new Date(upcomingClose.getFullYear(), upcomingClose.getMonth() + dueMonthOffset, dueDay);
   } else {
-    upcomingDue = new Date(upcomingClose.getTime() + (card.dueOffset || 0) * 24 * 60 * 60 * 1000);
+    upcomingDue = new Date(upcomingClose.getTime() + (dueOffset || 0) * 24 * 60 * 60 * 1000);
   }
 
   const daysToDue = (upcomingDue.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);

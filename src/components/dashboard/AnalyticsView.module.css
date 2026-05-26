@@ -203,6 +203,19 @@
 .catPercent {
   font-size: 0.85rem;
   color: var(--text-muted);
+  font-weight: 500;
+}
+
+.catValueGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.catValue {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-amber-light);
 }
 
 .catProgress {

@@ -1,45 +1,54 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import styles from './RecentTransactions.module.css';
-import { deleteTransaction, type Transaction } from '@/lib/firestore';
+import { subscribeToRecentTransactions, currentMonth, type Transaction } from '@/lib/firestore';
 import { CARDS, getCardCycleStatus, type CardId } from '@/lib/cards';
 import { Edit2, Trash2, XCircle } from 'lucide-react';
-import DeleteConfirmModal from './DeleteConfirmModal';
-import AddTransactionDialog from './AddTransactionDialog';
 
 interface RecentTransactionsProps {
-  transactions: Transaction[];
+  userId: string;
   selectedCardId: CardId | null;
   onClearFilter: () => void;
   onEdit: (t: Transaction) => void;
   onDelete: (t: Transaction) => void;
   ewRebateEarned: number;
+  onViewAll: () => void;
 }
 
 export default function RecentTransactions({ 
-  transactions, 
+  userId, 
   selectedCardId, 
   onClearFilter, 
   onEdit, 
   onDelete,
-  ewRebateEarned
+  ewRebateEarned,
+  onViewAll
 }: RecentTransactionsProps) {
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Reset pagination when active card filter changes
+  // Subscribe to exactly the 5 most recent transactions for this month/card
   useEffect(() => {
-    setVisibleCount(8);
-  }, [selectedCardId]);
-  
-  const filteredTransactions = useMemo(() => {
-    if (!selectedCardId) return transactions;
-    return transactions.filter(t => t.cardId === selectedCardId);
-  }, [transactions, selectedCardId]);
+    if (!userId) return;
+    setLoading(true);
+    const month = currentMonth();
+    const unsub = subscribeToRecentTransactions(
+      userId,
+      month,
+      5,
+      selectedCardId,
+      (txns) => {
+        setTransactions(txns);
+        setLoading(false);
+      }
+    );
+    return () => unsub();
+  }, [userId, selectedCardId]);
 
   const totalOwed = useMemo(() => {
     if (!selectedCardId) return 0;
-    return filteredTransactions.reduce((acc, t) => acc + t.amount, 0);
-  }, [filteredTransactions, selectedCardId]);
+    return transactions.reduce((acc, t) => acc + t.amount, 0);
+  }, [transactions, selectedCardId]);
 
   const dueDateStr = useMemo(() => {
     if (!selectedCardId) return '';
@@ -73,7 +82,11 @@ export default function RecentTransactions({
         )}
       </div>
 
-      {filteredTransactions.length === 0 ? (
+      {loading ? (
+        <div className={styles.empty}>
+          <p>Loading activity...</p>
+        </div>
+      ) : transactions.length === 0 ? (
         <div className={styles.empty}>
           <p>No transactions found{selectedCardId ? ' for this card' : ''}.</p>
         </div>
@@ -91,7 +104,7 @@ export default function RecentTransactions({
               </tr>
             </thead>
             <tbody>
-              {filteredTransactions.slice(0, visibleCount).map((t) => (
+              {transactions.map((t) => (
                 <tr key={t.id}>
                   <td data-label="Date">{t.date.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
                   <td data-label="Merchant">
@@ -153,16 +166,14 @@ export default function RecentTransactions({
             </tbody>
           </table>
 
-          {filteredTransactions.length > visibleCount && (
-            <div className={styles.loadMoreWrap}>
-              <button 
-                className={styles.loadMoreBtn} 
-                onClick={() => setVisibleCount(prev => prev + 8)}
-              >
-                Load More
-              </button>
-            </div>
-          )}
+          <div className={styles.loadMoreWrap}>
+            <button 
+              className={styles.loadMoreBtn} 
+              onClick={onViewAll}
+            >
+              View All Transactions
+            </button>
+          </div>
         </div>
       )}
     </div>

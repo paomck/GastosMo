@@ -11,6 +11,7 @@ import BestCardCalculator from './BestCardCalculator';
 import WalletHUD from './WalletHUD';
 import LootTracker from './LootTracker';
 import RecentTransactions from './RecentTransactions';
+import TransactionsView from './TransactionsView';
 import CardsView from './CardsView';
 import AnalyticsView from './AnalyticsView';
 import AddTransactionDialog from './AddTransactionDialog';
@@ -25,10 +26,10 @@ interface DashboardProps {
 export default function Dashboard({ onGoToLanding }: DashboardProps) {
   const { user, logout } = useAuth();
   const { all, thisMonth, stats, loading: txLoading } = useTransactions(user?.uid || '');
-  const { settings, loading: settingsLoading, saveLimits } = useUserSettings(user?.uid || '');
+  const { settings, loading: settingsLoading, saveCardConfigs } = useUserSettings(user?.uid || '');
   
   const loading = txLoading || settingsLoading;
-  const [currentView, setCurrentView] = useState<'dashboard' | 'cards' | 'analytics'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'cards' | 'analytics' | 'transactions'>('dashboard');
   const [selectedCardId, setSelectedCardId] = useState<CardId | null>(null);
   const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
   const [deletingTxn, setDeletingTxn] = useState<Transaction | null>(null);
@@ -107,12 +108,14 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
           <div className="animate-fade-up">
             <h1 className={styles.greeting}>
               {currentView === 'dashboard' ? getGreeting() : 
-               currentView === 'cards' ? 'Card Management' : 'The Treasury Report'}
+               currentView === 'cards' ? 'Card Management' : 
+               currentView === 'analytics' ? 'The Treasury Report' : 'Transactions Ledger'}
             </h1>
             <p className={styles.subGreeting}>
               {currentView === 'dashboard' ? 'Maximize every swipe with intelligent multi-card tracking.' :
                currentView === 'cards' ? 'Configure your card limits, statement dates, and reward tiers.' :
-               'Analyze your spending efficiency and rebate performance.'}
+               currentView === 'analytics' ? 'Analyze your spending efficiency and rebate performance.' :
+               'Review your full ledger with high-efficiency cursor pagination.'}
             </p>
           </div>
         </header>
@@ -124,7 +127,7 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
               <section className={styles.station}>
                 <BestCardCalculator 
                   ewRebateEarned={stats.ewRebate} 
-                  userLimits={settings.creditLimits}
+                  userLimits={settings.cardConfigs || {}}
                 />
               </section>
 
@@ -135,7 +138,7 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
                     stats={stats} 
                     onSelectCard={(id) => setSelectedCardId(id === selectedCardId ? null : id)} 
                     activeCardId={selectedCardId || undefined} 
-                    userLimits={settings.creditLimits}
+                    userLimits={settings.cardConfigs || {}}
                   />
                 </div>
 
@@ -149,12 +152,13 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
                     {/* Station 4: Spending Log */}
                     <section className={styles.station} style={{ marginTop: '2.5rem' }}>
                       <RecentTransactions 
-                        transactions={thisMonth} 
+                        userId={user?.uid || ''}
                         selectedCardId={selectedCardId}
                         onClearFilter={() => setSelectedCardId(null)}
                         onEdit={setEditingTxn}
                         onDelete={setDeletingTxn}
                         ewRebateEarned={stats.ewRebate}
+                        onViewAll={() => setCurrentView('transactions')}
                       />
                     </section>
                   </div>
@@ -167,18 +171,33 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
             <div className="animate-fade-up">
               <CardsView 
                 userId={user?.uid || ''} 
-                userLimits={settings.creditLimits} 
-                onSaveLimits={saveLimits}
+                userLimits={settings.cardConfigs || {}} 
+                onSaveLimits={saveCardConfigs}
+                transactions={all}
               />
             </div>
           )}
           {currentView === 'analytics' && <AnalyticsView stats={stats} transactions={all} />}
+          {currentView === 'transactions' && (
+            <div className="animate-fade-up">
+              <TransactionsView 
+                userId={user?.uid || ''}
+                allTransactions={all}
+                onEdit={setEditingTxn}
+                onDelete={setDeletingTxn}
+                ewRebateEarned={stats.ewRebate}
+              />
+            </div>
+          )}
         </div>
 
-        <AddTransactionDialog 
-          userId={user?.uid || ''} 
-          ewRebateEarned={stats.ewRebate} 
-        />
+        {currentView === 'dashboard' && (
+          <AddTransactionDialog 
+            userId={user?.uid || ''} 
+            ewRebateEarned={stats.ewRebate} 
+            userLimits={settings.cardConfigs || {}}
+          />
+        )}
 
         {/* Lifted Modals */}
         {editingTxn && (
@@ -187,6 +206,7 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
             ewRebateEarned={stats.ewRebate}
             initialTransaction={editingTxn}
             onClose={() => setEditingTxn(null)}
+            userLimits={settings.cardConfigs || {}}
           />
         )}
 

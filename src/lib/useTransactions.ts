@@ -3,6 +3,12 @@ import { useEffect, useState, useMemo } from 'react';
 import { subscribeToTransactions, currentMonth, type Transaction } from './firestore';
 import { calcEastwestRebate, calcPoints, EASTWEST_CAP, CARDS } from './cards';
 
+export interface CardStats {
+  spend: number;
+  reward: number;
+  lifetimeReward: number;
+}
+
 export interface MonthlyStats {
   ewSpend: number; ewRebate: number; ewCapHit: boolean;
   amexSpend: number; amexPoints: number;
@@ -11,6 +17,7 @@ export interface MonthlyStats {
   lifetimeRebate: number;
   lifetimeAmexPoints: number;
   lifetimeDiamondPoints: number;
+  cardStats: Record<string, CardStats>;
 }
 
 export function useTransactions(userId: string) {
@@ -41,8 +48,19 @@ export function useTransactions(userId: string) {
     let lifetimeAmexPoints = 0;
     let lifetimeDiamondPoints = 0;
 
+    // Initialize stats object for all defined cards
+    const cardStats: Record<string, CardStats> = {};
+    for (const id of Object.keys(CARDS)) {
+      cardStats[id] = { spend: 0, reward: 0, lifetimeReward: 0 };
+    }
+
     // Calculate Lifetime totals first
     for (const t of all) {
+      if (!cardStats[t.cardId]) {
+        cardStats[t.cardId] = { spend: 0, reward: 0, lifetimeReward: 0 };
+      }
+      cardStats[t.cardId].lifetimeReward += t.rebateEarned || t.pointsEarned || 0;
+
       if (t.cardId === 'eastwest') lifetimeRebate += t.rebateEarned;
       else if (t.cardId === 'bdo-amex') lifetimeAmexPoints += t.pointsEarned;
       else if (t.cardId === 'bdo-diamond') lifetimeDiamondPoints += t.pointsEarned;
@@ -51,22 +69,50 @@ export function useTransactions(userId: string) {
     // Recalculate monthly in chronological order for correct cap logic
     const sorted = [...thisMonth].sort((a, b) => a.date.seconds - b.date.seconds);
     for (const t of sorted) {
-      if (t.cardId === 'eastwest') {
-        const earned = calcEastwestRebate(t.amount, ewRebate);
-        ewSpend += t.amount; ewRebate += earned;
-      } else if (t.cardId === 'bdo-amex') {
-        amexSpend += t.amount;
-        amexPoints += calcPoints(t.amount, CARDS['bdo-amex'].pointDivisor!);
+      const id = t.cardId;
+      if (!cardStats[id]) {
+        cardStats[id] = { spend: 0, reward: 0, lifetimeReward: 0 };
+      }
+
+      let earned = 0;
+      if (id === 'eastwest') {
+        earned = calcEastwestRebate(t.amount, ewRebate);
       } else {
+        const card = CARDS[id];
+        if (card) {
+          if (card.pointsLabel === 'cashback') {
+            const rate = card.rebateRate || 0.01;
+            const cap = card.rebateCap !== undefined ? card.rebateCap : Infinity;
+            const remaining = Math.max(0, cap - cardStats[id].reward);
+            earned = Math.min(t.amount * rate, remaining);
+          } else {
+            earned = calcPoints(t.amount, card.pointDivisor || 30);
+          }
+        }
+      }
+
+      cardStats[id].spend += t.amount;
+      cardStats[id].reward += earned;
+
+      if (id === 'eastwest') {
+        ewSpend += t.amount; ewRebate += earned;
+      } else if (id === 'bdo-amex') {
+        amexSpend += t.amount;
+        amexPoints += earned;
+      } else if (id === 'bdo-diamond') {
         diamondSpend += t.amount;
-        diamondPoints += calcPoints(t.amount, CARDS['bdo-diamond'].pointDivisor!);
+        diamondPoints += earned;
       }
     }
+
+    const totalSpend = Object.values(cardStats).reduce((acc, curr) => acc + curr.spend, 0);
+
     return {
       ewSpend, ewRebate, ewCapHit: ewRebate >= EASTWEST_CAP,
       amexSpend, amexPoints, diamondSpend, diamondPoints,
-      totalSpend: ewSpend + amexSpend + diamondSpend,
+      totalSpend,
       lifetimeRebate, lifetimeAmexPoints, lifetimeDiamondPoints,
+      cardStats,
     };
   }, [all, thisMonth]);
 
