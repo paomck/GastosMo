@@ -4,7 +4,7 @@ import styles from './AddTransactionDialog.module.css';
 import { CARDS, CARD_ORDER, calcEastwestRebate, calcPoints, type CardId, type TransactionCategory, EASTWEST_RATE } from '@/lib/cards';
 import { checkMerchantEligibility, getMerchantStatus } from '@/lib/merchantRules';
 import { X, Plus, CreditCard, DollarSign, Store, Tag, Sparkles, Info, HelpCircle } from 'lucide-react';
-import { addTransaction, updateTransaction, currentMonth, type Transaction } from '@/lib/firestore';
+import { addTransaction, updateTransaction, currentMonth, type Transaction, type UserCardConfig } from '@/lib/firestore';
 import { Timestamp } from 'firebase/firestore';
 
 interface AddTransactionDialogProps {
@@ -12,7 +12,7 @@ interface AddTransactionDialogProps {
   ewRebateEarned: number;
   initialTransaction?: Transaction;
   onClose?: () => void;
-  userLimits?: Record<string, number>;
+  userLimits?: Record<string, UserCardConfig>;
 }
 
 const CATEGORIES: { value: TransactionCategory; label: string }[] = [
