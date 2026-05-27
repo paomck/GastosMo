@@ -12,11 +12,49 @@ interface WalletHUDProps {
 }
 
 export default function WalletHUD({ stats, onSelectCard, activeCardId, userLimits }: WalletHUDProps) {
+  // Calculate total owed and total credit limit across active cards
+  const activeCards = CARD_ORDER.filter((id) => id in userLimits);
+  
+  let totalOwed = 0;
+  let totalLimit = 0;
+  
+  activeCards.forEach((id) => {
+    totalOwed += stats.cardStats?.[id]?.spend || 0;
+    totalLimit += userLimits[id]?.limit || 0;
+  });
+
+  const utilization = totalLimit > 0 ? (totalOwed / totalLimit) * 100 : 0;
+  const clampedUtilization = Math.min(Math.max(utilization, 0), 100);
+
   return (
     <div className={styles.hud}>
       <h2 className={styles.title}>Your Wallet</h2>
+
+      {/* Total Balance Summary Widget */}
+      <div className={styles.summaryCard}>
+        <div className={styles.summaryHeader}>
+          <span className={styles.summaryLabel}>Total Amount Owed</span>
+          <span className={styles.summaryLabel}>This Month</span>
+        </div>
+        <div className={styles.summaryValue}>
+          ₱{totalOwed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </div>
+        <div className={styles.utilizationWrap}>
+          <div className={styles.utilizationLabel}>
+            <span>Portfolio Utilization</span>
+            <span>{utilization.toFixed(1)}%</span>
+          </div>
+          <div className={styles.utilizationBar}>
+            <div 
+              className={styles.utilizationFill} 
+              style={{ width: `${clampedUtilization}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
       <div className={styles.stack}>
-        {CARD_ORDER.filter((id) => id in userLimits).map((id) => {
+        {activeCards.map((id) => {
           const spend = stats.cardStats?.[id]?.spend || 0;
           const reward = stats.cardStats?.[id]?.reward || 0;
 

@@ -13,8 +13,12 @@ interface CardsViewProps {
 }
 
 export default function CardsView({ userId, userLimits, onSaveLimits, transactions }: CardsViewProps) {
-  const [editingLimitId, setEditingLimitId] = useState<CardId | null>(null);
+  const [editingCardId, setEditingCardId] = useState<CardId | null>(null);
   const [tempLimit, setTempLimit] = useState<string>('');
+  const [tempCloseDay, setTempCloseDay] = useState<number | ''>(15);
+  const [tempDueMode, setTempDueMode] = useState<'fixed' | 'offset'>('offset');
+  const [tempDueValue, setTempDueValue] = useState<number | ''>(20);
+  
   const [localLimits, setLocalLimits] = useState<Record<CardId, UserCardConfig>>(userLimits as Record<CardId, UserCardConfig>);
   const [saving, setSaving] = useState(false);
 
@@ -24,6 +28,9 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
   // Add card state
   const [newCardId, setNewCardId] = useState<CardId | ''>('');
   const [newCardLimit, setNewCardLimit] = useState<string>('');
+  const [newCardCloseDay, setNewCardCloseDay] = useState<number | ''>(15);
+  const [newCardDueMode, setNewCardDueMode] = useState<'fixed' | 'offset'>('offset');
+  const [newCardDueValue, setNewCardDueValue] = useState<number | ''>(20);
   const [selectedBank, setSelectedBank] = useState<string>('');
 
   const disabledCards = CARD_ORDER.filter(id => !(id in localLimits));
@@ -53,6 +60,14 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
         const nextCardId = filtered.includes(newCardId as CardId) ? (newCardId as CardId) : filtered[0];
         setNewCardId(nextCardId);
         setNewCardLimit(CARDS[nextCardId].creditLimit.toLocaleString('en-US'));
+        setNewCardCloseDay(CARDS[nextCardId].closeDay);
+        if (CARDS[nextCardId].dueDay) {
+          setNewCardDueMode('fixed');
+          setNewCardDueValue(CARDS[nextCardId].dueDay!);
+        } else {
+          setNewCardDueMode('offset');
+          setNewCardDueValue(CARDS[nextCardId].dueOffset || 20);
+        }
       }
     } else {
       setSelectedBank('');
@@ -65,26 +80,67 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
     setSelectedBank(bank);
     const filtered = disabledCards.filter(id => CARDS[id].bank === bank);
     if (filtered.length > 0) {
-      setNewCardId(filtered[0]);
-      setNewCardLimit(CARDS[filtered[0]].creditLimit.toLocaleString('en-US'));
+      const nextCardId = filtered[0];
+      setNewCardId(nextCardId);
+      setNewCardLimit(CARDS[nextCardId].creditLimit.toLocaleString('en-US'));
+      setNewCardCloseDay(CARDS[nextCardId].closeDay);
+      if (CARDS[nextCardId].dueDay) {
+        setNewCardDueMode('fixed');
+        setNewCardDueValue(CARDS[nextCardId].dueDay!);
+      } else {
+        setNewCardDueMode('offset');
+        setNewCardDueValue(CARDS[nextCardId].dueOffset || 20);
+      }
     }
   };
 
   const startEdit = (id: CardId, current: UserCardConfig) => {
-    setEditingLimitId(id);
+    setEditingCardId(id);
     setTempLimit(current.limit.toLocaleString('en-US'));
+    
+    const defaultCard = CARDS[id];
+    setTempCloseDay(current.closeDay ?? defaultCard.closeDay);
+    
+    if (current.dueDay !== undefined) {
+      setTempDueMode('fixed');
+      setTempDueValue(current.dueDay);
+    } else if (current.dueOffset !== undefined) {
+      setTempDueMode('offset');
+      setTempDueValue(current.dueOffset);
+    } else if (defaultCard.dueDay !== undefined) {
+      setTempDueMode('fixed');
+      setTempDueValue(defaultCard.dueDay);
+    } else {
+      setTempDueMode('offset');
+      setTempDueValue(defaultCard.dueOffset || 20);
+    }
   };
 
   const saveLimit = async () => {
-    if (editingLimitId) {
+    if (editingCardId) {
       try {
         setSaving(true);
         const rawLimit = parseInt(tempLimit.replace(/\D/g, '')) || 0;
-        const currentConfig = localLimits[editingLimitId] || {};
-        const newLimits = { ...localLimits, [editingLimitId]: { ...currentConfig, limit: rawLimit } };
+        const currentConfig = localLimits[editingCardId] || {};
+        
+        const finalCloseDay = typeof tempCloseDay === 'number' ? tempCloseDay : (currentConfig.closeDay ?? CARDS[editingCardId].closeDay);
+        const finalDueValue = typeof tempDueValue === 'number' ? tempDueValue : 20;
+
+        const updatedConfig = { 
+          ...currentConfig, 
+          limit: rawLimit,
+          closeDay: finalCloseDay,
+          dueDay: tempDueMode === 'fixed' ? finalDueValue : undefined,
+          dueOffset: tempDueMode === 'offset' ? finalDueValue : undefined
+        };
+        
+        if (tempDueMode === 'fixed') delete updatedConfig.dueOffset;
+        if (tempDueMode === 'offset') delete updatedConfig.dueDay;
+
+        const newLimits = { ...localLimits, [editingCardId]: updatedConfig };
         setLocalLimits(newLimits);
         await onSaveLimits(newLimits);
-        setEditingLimitId(null);
+        setEditingCardId(null);
       } catch (err) {
         console.error("Error saving limit:", err);
       } finally {
@@ -96,6 +152,14 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
   const handleSelectNewCard = (id: CardId) => {
     setNewCardId(id);
     setNewCardLimit(CARDS[id].creditLimit.toLocaleString('en-US'));
+    setNewCardCloseDay(CARDS[id].closeDay);
+    if (CARDS[id].dueDay) {
+      setNewCardDueMode('fixed');
+      setNewCardDueValue(CARDS[id].dueDay!);
+    } else {
+      setNewCardDueMode('offset');
+      setNewCardDueValue(CARDS[id].dueOffset || 20);
+    }
   };
 
   const handleAddCard = async (e: React.FormEvent) => {
@@ -105,7 +169,21 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
     try {
       setSaving(true);
       const rawLimit = parseInt(newCardLimit.replace(/\D/g, '')) || 0;
-      const newLimits = { ...localLimits, [newCardId]: { limit: rawLimit } };
+      
+      const finalCloseDay = typeof newCardCloseDay === 'number' ? newCardCloseDay : CARDS[newCardId].closeDay;
+      const finalDueValue = typeof newCardDueValue === 'number' ? newCardDueValue : 20;
+
+      const config: UserCardConfig = {
+        limit: rawLimit,
+        closeDay: finalCloseDay,
+      };
+      if (newCardDueMode === 'fixed') {
+        config.dueDay = finalDueValue;
+      } else {
+        config.dueOffset = finalDueValue;
+      }
+      
+      const newLimits = { ...localLimits, [newCardId]: config };
       setLocalLimits(newLimits);
       await onSaveLimits(newLimits);
     } catch (err) {
@@ -205,21 +283,38 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
                   <label>Statement Day</label>
                   <input 
                     type="number" 
-                    value={newCardId ? CARDS[newCardId].closeDay : 15}
-                    disabled
-                    style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                    min="1" max="31"
+                    value={newCardCloseDay}
+                    onChange={(e) => setNewCardCloseDay(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    required
                   />
                 </div>
               </div>
 
-              <div className={styles.inputGroup}>
-                <label>Due Date Rules</label>
-                <input 
-                  type="text" 
-                  value={newCardId ? (CARDS[newCardId].dueDay ? `Fixed (Day ${CARDS[newCardId].dueDay})` : `${CARDS[newCardId].dueOffset} Days after Statement`) : ''}
-                  disabled
-                  style={{ opacity: 0.6, cursor: 'not-allowed' }}
-                />
+              <div className={styles.row}>
+                <div className={styles.inputGroup}>
+                  <label>Due Date Rule</label>
+                  <div className={styles.inputWrap}>
+                    <select 
+                      className={styles.select}
+                      value={newCardDueMode}
+                      onChange={(e) => setNewCardDueMode(e.target.value as 'fixed' | 'offset')}
+                    >
+                      <option value="offset">Days after Statement</option>
+                      <option value="fixed">Fixed Day of Month</option>
+                    </select>
+                  </div>
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>{newCardDueMode === 'fixed' ? 'Due Day' : 'Days'}</label>
+                  <input 
+                    type="number" 
+                    min="1" max={newCardDueMode === 'fixed' ? 31 : 60}
+                    value={newCardDueValue}
+                    onChange={(e) => setNewCardDueValue(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    required
+                  />
+                </div>
               </div>
 
               <button type="submit" className="btn-primary" style={{ marginTop: '1rem', width: '100%', justifyContent: 'center' }} disabled={saving}>
@@ -257,6 +352,7 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
                 <tr>
                   <th>Card</th>
                   <th>Credit Limit</th>
+                  <th>Cycle</th>
                   <th>Utilization</th>
                   <th>Reward</th>
                   <th>Actions</th>
@@ -280,7 +376,7 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
                         </div>
                       </td>
                       <td data-label="Limit" className={styles.limitText}>
-                        {editingLimitId === id ? (
+                        {editingCardId === id ? (
                           <div className={styles.editWrap}>
                             <input 
                               type="text" 
@@ -296,8 +392,6 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
                               }}
                               autoFocus
                             />
-                            <button className={styles.saveBtn} onClick={saveLimit}><Check size={14} /></button>
-                            <button className={styles.cancelBtn} onClick={() => setEditingLimitId(null)}><X size={14} /></button>
                           </div>
                         ) : (
                           <div className={styles.limitValue}>
@@ -305,6 +399,43 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
                             <button className={styles.editIconBtn} onClick={() => startEdit(id, localLimits[id])}>
                               <Edit3 size={12} />
                             </button>
+                          </div>
+                        )}
+                      </td>
+                      <td data-label="Cycle" className={styles.cycleText}>
+                        {editingCardId === id ? (
+                          <div className={styles.editCycleWrap}>
+                            <input
+                              type="number"
+                              title="Statement Day"
+                              className={styles.inlineInputSmall}
+                              value={tempCloseDay}
+                              onChange={(e) => setTempCloseDay(e.target.value === '' ? '' : parseInt(e.target.value))}
+                              min="1" max="31"
+                            />
+                            <select
+                              className={styles.inlineSelect}
+                              value={tempDueMode}
+                              onChange={(e) => setTempDueMode(e.target.value as 'fixed' | 'offset')}
+                            >
+                              <option value="offset">Days</option>
+                              <option value="fixed">Fixed</option>
+                            </select>
+                            <input
+                              type="number"
+                              title="Due Value"
+                              className={styles.inlineInputSmall}
+                              value={tempDueValue}
+                              onChange={(e) => setTempDueValue(e.target.value === '' ? '' : parseInt(e.target.value))}
+                              min="1"
+                            />
+                          </div>
+                        ) : (
+                          <div className={styles.cycleValue}>
+                            Stmt: {localLimits[id]?.closeDay ?? CARDS[id].closeDay} <br/>
+                            Due: {(localLimits[id]?.dueDay ?? CARDS[id].dueDay) 
+                                   ? `Day ${localLimits[id]?.dueDay ?? CARDS[id].dueDay}` 
+                                   : `+${localLimits[id]?.dueOffset ?? CARDS[id].dueOffset} Days`}
                           </div>
                         )}
                       </td>
@@ -325,15 +456,22 @@ export default function CardsView({ userId, userLimits, onSaveLimits, transactio
                       </td>
                       <td data-label="Reward" className={styles.rewardText}>{CARDS[id].rewardLabel}</td>
                       <td data-label="Actions">
-                        <div className={styles.actionsCell}>
-                          <button 
-                            className={styles.deleteCardBtn}
-                            onClick={() => setCardIdToDelete(id)}
-                            title="Remove Card"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
+                        {editingCardId === id ? (
+                          <div className={styles.actionsCell}>
+                            <button className={styles.saveBtn} onClick={saveLimit}><Check size={16} /></button>
+                            <button className={styles.cancelBtn} onClick={() => setEditingCardId(null)}><X size={16} /></button>
+                          </div>
+                        ) : (
+                          <div className={styles.actionsCell}>
+                            <button 
+                              className={styles.deleteCardBtn}
+                              onClick={() => setCardIdToDelete(id)}
+                              title="Remove Card"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))

@@ -235,6 +235,46 @@
 .saveBtn:hover { background: rgba(90, 185, 138, 0.1); }
 .cancelBtn:hover { background: rgba(248, 113, 113, 0.1); }
 
+.editCycleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.inlineInputSmall {
+  width: 80px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-amber);
+  border-radius: 4px;
+  padding: 4px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.inlineSelect {
+  width: 80px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-amber);
+  border-radius: 4px;
+  padding: 4px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.cycleValue {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.cycleText {
+  white-space: nowrap;
+}
+
 .utilizationWrap {
   display: flex;
   align-items: center;

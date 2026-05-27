@@ -13,7 +13,21 @@ export type CardId =
   | 'metro-titanium-mc'
   | 'rcbc-black-plat'
   | 'rcbc-miles-sig'
-  | 'shopee-pay-later';
+  | 'shopee-pay-later'
+  | 'bdo-shopmore'
+  | 'bdo-gold'
+  | 'bpi-rewards'
+  | 'bpi-amore-plat'
+  | 'ub-miles-world'
+  | 'ub-reserve'
+  | 'metro-mfree'
+  | 'metro-world'
+  | 'metro-cashback'
+  | 'rcbc-flex'
+  | 'rcbc-jcb-plat'
+  | 'ew-dolce-vita'
+  | 'sb-wave'
+  | 'sb-plat-world';
 
 export type TransactionCategory = 'dining' | 'groceries' | 'shopping' | 'travel' | 'bills' | 'transportation' | 'other';
 import { checkMerchantEligibility } from './merchantRules';
@@ -147,6 +161,106 @@ export const CARDS: Record<CardId, CardDef> = {
     pointDivisor: 100, pointsLabel: 'Shopee Coins',
     closeDay: 24, dueDay: 5, creditLimit: 50000,
   },
+
+  // --- ADDITIONAL DIRECTORY CARDS ---
+  'bdo-shopmore': {
+    id: 'bdo-shopmore', name: 'ShopMore Mastercard', bank: 'BDO', network: 'MASTERCARD',
+    rewardLabel: '1 pt / ₱250 (SM Promo)', grad: ['#0033A0', '#0054E6', '#4D94FF'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 250, pointsLabel: 'BDO Points',
+    closeDay: 20, dueOffset: 25, creditLimit: 50000,
+  },
+  'bdo-gold': {
+    id: 'bdo-gold', name: 'Gold Visa/Mastercard', bank: 'BDO', network: 'VISA',
+    rewardLabel: '1 pt / ₱50', grad: ['#B8860B', '#DAA520', '#FFD700'],
+    textColor: '#1A1A1A', mutedColor: 'rgba(0,0,0,0.6)',
+    pointDivisor: 50, pointsLabel: 'BDO Points',
+    closeDay: 15, dueOffset: 25, creditLimit: 100000,
+  },
+  'bpi-rewards': {
+    id: 'bpi-rewards', name: 'Rewards Card', bank: 'BPI', network: 'MASTERCARD',
+    rewardLabel: '1 pt / ₱35', grad: ['#8B0000', '#B22222', '#CD5C5C'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 35, pointsLabel: 'BPI Points',
+    closeDay: 12, dueOffset: 20, creditLimit: 40000,
+  },
+  'bpi-amore-plat': {
+    id: 'bpi-amore-plat', name: 'Amore Platinum Cashback', bank: 'BPI', network: 'VISA',
+    rewardLabel: '4% Dining / 1% Supermarket', grad: ['#000000', '#2E2E2E', '#5C5C5C'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    rebateRate: 0.04, rebateCap: 1250, pointsLabel: 'cashback',
+    closeDay: 10, dueOffset: 20, creditLimit: 150000,
+  },
+  'ub-miles-world': {
+    id: 'ub-miles-world', name: 'Miles+ World', bank: 'UnionBank', network: 'MASTERCARD',
+    rewardLabel: '1 mile / ₱30', grad: ['#0C2340', '#1C3F60', '#3D6889'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 30, pointsLabel: 'Miles',
+    closeDay: 5, dueOffset: 25, creditLimit: 250000,
+  },
+  'ub-reserve': {
+    id: 'ub-reserve', name: 'Reserve', bank: 'UnionBank', network: 'VISA',
+    rewardLabel: 'Premium Perks', grad: ['#000000', '#111111', '#222222'],
+    textColor: '#D4AF37', mutedColor: 'rgba(212,175,55,0.6)',
+    pointDivisor: 20, pointsLabel: 'Points',
+    closeDay: 1, dueOffset: 25, creditLimit: 1000000,
+  },
+  'metro-mfree': {
+    id: 'metro-mfree', name: 'M Free Mastercard', bank: 'Metrobank', network: 'MASTERCARD',
+    rewardLabel: 'Zero Annual Fee', grad: ['#E6E6FA', '#D8BFD8', '#DDA0DD'],
+    textColor: '#1A1A1A', mutedColor: 'rgba(0,0,0,0.6)',
+    pointDivisor: 0, pointsLabel: 'None',
+    closeDay: 22, dueOffset: 21, creditLimit: 40000,
+  },
+  'metro-world': {
+    id: 'metro-world', name: 'World Mastercard', bank: 'Metrobank', network: 'MASTERCARD',
+    rewardLabel: '1 pt / ₱20 (2x Intl)', grad: ['#2F4F4F', '#40826D', '#66CDAA'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 20, pointsLabel: 'Metro Points',
+    closeDay: 15, dueOffset: 21, creditLimit: 300000,
+  },
+  'metro-cashback': {
+    id: 'metro-cashback', name: 'Cashback Visa', bank: 'Metrobank', network: 'VISA',
+    rewardLabel: 'Up to 8% Cashback', grad: ['#4682B4', '#5F9EA0', '#87CEEB'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    rebateRate: 0.08, rebateCap: 1000, pointsLabel: 'cashback',
+    closeDay: 20, dueOffset: 21, creditLimit: 100000,
+  },
+  'rcbc-flex': {
+    id: 'rcbc-flex', name: 'Flex Visa', bank: 'RCBC', network: 'VISA',
+    rewardLabel: '2x Points on 2 Categories', grad: ['#00BFFF', '#1E90FF', '#4169E1'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 36, pointsLabel: 'RCBC Points',
+    closeDay: 7, dueOffset: 25, creditLimit: 50000,
+  },
+  'rcbc-jcb-plat': {
+    id: 'rcbc-jcb-plat', name: 'JCB Platinum', bank: 'RCBC', network: 'JCB',
+    rewardLabel: '1 pt / ₱36 (Japan Perks)', grad: ['#C71585', '#DB7093', '#FF69B4'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 36, pointsLabel: 'RCBC Points',
+    closeDay: 10, dueOffset: 25, creditLimit: 150000,
+  },
+  'ew-dolce-vita': {
+    id: 'ew-dolce-vita', name: 'Dolce Vita Titanium', bank: 'EastWest', network: 'MASTERCARD',
+    rewardLabel: '1 pt / ₱100', grad: ['#FFB6C1', '#FFC0CB', '#FFE4E1'],
+    textColor: '#1A1A1A', mutedColor: 'rgba(0,0,0,0.6)',
+    pointDivisor: 100, pointsLabel: 'Points',
+    closeDay: 18, dueOffset: 21, creditLimit: 80000,
+  },
+  'sb-wave': {
+    id: 'sb-wave', name: 'Wave Mastercard', bank: 'Security Bank', network: 'MASTERCARD',
+    rewardLabel: '1% Online Cashback', grad: ['#20B2AA', '#48D1CC', '#40E0D0'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    rebateRate: 0.01, rebateCap: 3000, pointsLabel: 'cashback',
+    closeDay: 10, dueOffset: 21, creditLimit: 75000,
+  },
+  'sb-plat-world': {
+    id: 'sb-plat-world', name: 'World Mastercard', bank: 'Security Bank', network: 'MASTERCARD',
+    rewardLabel: '1 pt / ₱20 (3x Travel)', grad: ['#36454F', '#536872', '#708090'],
+    textColor: '#FFFFFF', mutedColor: 'rgba(255,255,255,0.6)',
+    pointDivisor: 20, pointsLabel: 'Points',
+    closeDay: 15, dueOffset: 21, creditLimit: 350000,
+  }
 };
 
 export const CARD_ORDER: CardId[] = [
@@ -164,6 +278,20 @@ export const CARD_ORDER: CardId[] = [
   'metro-titanium-mc',
   'rcbc-black-plat',
   'rcbc-miles-sig',
+  'rcbc-flex',
+  'rcbc-jcb-plat',
+  'bdo-shopmore',
+  'bdo-gold',
+  'bpi-rewards',
+  'bpi-amore-plat',
+  'ub-miles-world',
+  'ub-reserve',
+  'metro-mfree',
+  'metro-world',
+  'metro-cashback',
+  'ew-dolce-vita',
+  'sb-wave',
+  'sb-plat-world',
   'shopee-pay-later',
 ];
 
