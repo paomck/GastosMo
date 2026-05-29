@@ -5,7 +5,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { useTransactions } from '@/lib/useTransactions';
 import { useUserSettings } from '@/lib/useUserSettings';
 import type { CardId } from '@/lib/cards';
-import { LayoutDashboard, CreditCard, BarChart3, LogOut } from 'lucide-react';
+import { LayoutDashboard, CreditCard, BarChart3, LogOut, User } from 'lucide-react';
 
 import BestCardCalculator from './BestCardCalculator';
 import WalletHUD from './WalletHUD';
@@ -14,6 +14,7 @@ import RecentTransactions from './RecentTransactions';
 import TransactionsView from './TransactionsView';
 import CardsView from './CardsView';
 import AnalyticsView from './AnalyticsView';
+import SettingsView from './SettingsView';
 import AddTransactionDialog from './AddTransactionDialog';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import LoadingScreen from '@/components/ui/LoadingScreen';
@@ -29,7 +30,7 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
   const { settings, loading: settingsLoading, saveCardConfigs } = useUserSettings(user?.uid || '');
   
   const loading = txLoading || settingsLoading;
-  const [currentView, setCurrentView] = useState<'dashboard' | 'cards' | 'analytics' | 'transactions'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'cards' | 'analytics' | 'transactions' | 'settings'>('dashboard');
   const [selectedCardId, setSelectedCardId] = useState<CardId | null>(null);
   const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
   const [deletingTxn, setDeletingTxn] = useState<Transaction | null>(null);
@@ -39,7 +40,11 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Romar';
+    const firstName = user?.displayName 
+      ? user.displayName.split(' ')[0] 
+      : user?.email 
+        ? user.email.split('@')[0] 
+        : 'Captain';
     if (hour < 12) return `Good morning, ${firstName}`;
     if (hour < 17) return `Good afternoon, ${firstName}`;
     return `Good evening, ${firstName}`;
@@ -94,6 +99,13 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
             <BarChart3 size={18} />
             Analytics
           </button>
+          <button 
+            className={`${styles.navItem} ${currentView === 'settings' ? styles.active : ''}`}
+            onClick={() => setCurrentView('settings')}
+          >
+            <User size={18} />
+            Profile & Settings
+          </button>
         </nav>
 
         <button className={styles.logoutBtn} onClick={() => setShowLogoutConfirm(true)}>
@@ -109,12 +121,14 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
             <h1 className={styles.greeting}>
               {currentView === 'dashboard' ? getGreeting() : 
                currentView === 'cards' ? 'Card Management' : 
-               currentView === 'analytics' ? 'The Treasury Report' : 'Transactions Ledger'}
+               currentView === 'analytics' ? 'The Treasury Report' : 
+               currentView === 'settings' ? 'Command Center' : 'Transactions Ledger'}
             </h1>
             <p className={styles.subGreeting}>
               {currentView === 'dashboard' ? 'Maximize every swipe with intelligent multi-card tracking.' :
                currentView === 'cards' ? 'Configure your card limits, statement dates, and reward tiers.' :
                currentView === 'analytics' ? 'Analyze your spending efficiency and rebate performance.' :
+               currentView === 'settings' ? 'Manage your profile, security, and data preferences.' :
                'Review your full ledger with high-efficiency cursor pagination.'}
             </p>
           </div>
@@ -178,6 +192,11 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
             </div>
           )}
           {currentView === 'analytics' && <AnalyticsView stats={stats} transactions={all} />}
+          {currentView === 'settings' && (
+            <div className="animate-fade-up">
+              <SettingsView transactions={all} />
+            </div>
+          )}
           {currentView === 'transactions' && (
             <div className="animate-fade-up">
               <TransactionsView 

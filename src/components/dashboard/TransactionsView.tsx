@@ -266,14 +266,17 @@ export default function TransactionsView({
                     )}
                   </td>
                   <td data-label="Log" style={{ textAlign: 'right' }}>
-                    <div className={styles.spendRow}>
-                      <span className={styles.spent}>₱{t.amount.toLocaleString('en-PH', { minimumFractionDigits: 0 })} spent</span>
-                      <span className={styles.arrow}>→</span>
-                      {t.cardId === 'eastwest' ? (
-                        <span className={styles.rebateBadge}>+₱{t.rebateEarned.toFixed(2)} earned</span>
-                      ) : (
-                        <span className={styles.pointsBadge}>+{Math.round(t.pointsEarned)} pts</span>
-                      )}
+                    <div className={styles.spendStack}>
+                      <span className={styles.spentHighlight}>
+                        ₱{t.amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                      <div className={styles.earnedMuted}>
+                        {t.cardId === 'eastwest' ? (
+                          `+₱${t.rebateEarned.toFixed(2)} earned`
+                        ) : (
+                          `+${Math.round(t.pointsEarned)} pts`
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td data-label="Actions" style={{ textAlign: 'center' }}>

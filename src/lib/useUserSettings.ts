@@ -3,9 +3,7 @@ import { useState, useEffect } from 'react';
 import { subscribeToUserSettings, updateUserSettings, type UserSettings, type UserCardConfig } from './firestore';
 import { CARDS } from './cards';
 
-const DEFAULT_CONFIGS: Record<string, UserCardConfig> = {
-  'eastwest': { limit: CARDS['eastwest'].creditLimit },
-};
+const DEFAULT_CONFIGS: Record<string, UserCardConfig> = {};
 
 export function useUserSettings(userId: string) {
   const [settings, setSettings] = useState<UserSettings>({

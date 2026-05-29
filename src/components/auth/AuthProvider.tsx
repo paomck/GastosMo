@@ -9,6 +9,10 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  updateProfile,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
   type User,
 } from '@/lib/firebase';
 
@@ -19,6 +23,8 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfileName: (name: string) => Promise<void>;
+  updateUserPassword: (currentPass: string, newPass: string) => Promise<void>;
   error: string | null;
 }
 
@@ -64,6 +70,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfileName = async (name: string) => {
+    setError(null);
+    if (!user) throw new Error('No user is currently signed in');
+    try {
+      await updateProfile(user, { displayName: name });
+      // Force user state to update since Firebase might not trigger onAuthStateChanged for profile updates alone
+      setUser({ ...user, displayName: name }); 
+    } catch (err: unknown) {
+      setError((err as { message?: string }).message ?? 'Failed to update profile name');
+      throw err;
+    }
+  };
+
+  const updateUserPassword = async (currentPass: string, newPass: string) => {
+    setError(null);
+    if (!user || !user.email) throw new Error('No user is currently signed in with email');
+    try {
+      const credential = EmailAuthProvider.credential(user.email, currentPass);
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPass);
+    } catch (err: unknown) {
+      const msg = (err as { message?: string }).message ?? 'Failed to update password';
+      setError(msg);
+      throw new Error(msg);
+    }
+  };
+
   const logout = async () => {
     setError(null);
     await signOut(auth);
@@ -71,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, logout, error }}
+      value={{ user, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, logout, updateProfileName, updateUserPassword, error }}
     >
       {children}
     </AuthContext.Provider>
