@@ -5,6 +5,7 @@ import Navbar from './Navbar';
 import HeroSection from './HeroSection';
 import FeatureCards from './FeatureCards';
 import WorkflowSection from './WorkflowSection';
+import TrustSection from './TrustSection';
 import LandingFooter from './LandingFooter';
 
 interface LandingPageProps {
@@ -19,6 +20,7 @@ export default function LandingPage({ onGoToDashboard }: LandingPageProps) {
         <HeroSection onGoToDashboard={onGoToDashboard} />
         <FeatureCards />
         <WorkflowSection />
+        <TrustSection />
       </main>
       <LandingFooter />
     </div>

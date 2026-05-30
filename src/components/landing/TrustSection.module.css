@@ -1,0 +1,130 @@
+.section {
+  padding: 6rem 2rem;
+  position: relative;
+  border-top: 1px solid var(--border-glass);
+  background: linear-gradient(
+    180deg,
+    rgba(13, 17, 26, 0.3) 0%,
+    rgba(7, 9, 15, 0.6) 100%
+  );
+}
+
+.inner {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* --- Shield Icon --- */
+.iconWrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 184, 0, 0.08);
+  border: 1px solid rgba(255, 184, 0, 0.18);
+  margin-bottom: 0.5rem;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.icon {
+  color: var(--accent-amber);
+  filter: drop-shadow(0 0 8px rgba(255, 184, 0, 0.35));
+}
+
+/* --- Headline --- */
+.headline {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.headlineAccent {
+  background: linear-gradient(
+    135deg,
+    var(--accent-amber) 0%,
+    var(--accent-amber-light) 60%,
+    #f5d89a 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- Description --- */
+.description {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  max-width: 560px;
+}
+
+/* --- Trust Badges --- */
+.badges {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.badge:hover {
+  border-color: rgba(255, 184, 0, 0.25);
+  background: rgba(255, 184, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.badgeIcon {
+  color: var(--accent-amber);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.badgeText {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* --- Pulse Glow Animation --- */
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(255, 184, 0, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(255, 184, 0, 0.18);
+  }
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .section {
+    padding: 4rem 1.5rem;
+  }
+
+  .badges {
+    flex-direction: column;
+    align-items: center;
+  }
+}

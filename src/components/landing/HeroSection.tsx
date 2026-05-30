@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import AuthModal from '@/components/auth/AuthModal';
 import styles from './HeroSection.module.css';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, ShieldCheck, Lock } from 'lucide-react';
 
 interface HeroSectionProps {
   onGoToDashboard?: () => void;
@@ -41,8 +41,7 @@ export default function HeroSection({ onGoToDashboard }: HeroSectionProps) {
 
           {/* Sub-headline */}
           <p className={`${styles.subheadline} animate-fade-up delay-200`}>
-            The intelligent dashboard for multi-card.<br className={styles.desktopBreak} />
-            Track <span className={styles.highlight}>8.88% rebates</span>, avoid fees, and always
+            Track your highest rebates, avoid fees, and always<br className={styles.desktopBreak} />
             know which card to draw.
           </p>
 
@@ -64,11 +63,11 @@ export default function HeroSection({ onGoToDashboard }: HeroSectionProps) {
                 className="btn-primary"
                 onClick={() => setModalOpen(true)}
               >
-                Login to Command Center
+                Login
                 <ArrowRight size={18} />
               </button>
             )}
-            <a href="#features" className="btn-ghost">
+            <a href="#features" className={`btn-ghost ${styles.ghostCta}`}>
               See how it works
             </a>
           </div>
@@ -76,18 +75,13 @@ export default function HeroSection({ onGoToDashboard }: HeroSectionProps) {
           {/* Trust indicators */}
           <div className={`${styles.trust} animate-fade-up delay-400`}>
             <span className={styles.trustItem}>
-              <span className={styles.trustDot} />
-              Bank-Grade Authentication
+              <Lock size={14} className={styles.trustIcon} />
+              No Card Numbers Required
             </span>
             <span className={styles.trustDivider}>·</span>
             <span className={styles.trustItem}>
-              <span className={styles.trustDot} />
-              Real-time sync
-            </span>
-            <span className={styles.trustDivider}>·</span>
-            <span className={styles.trustItem}>
-              <span className={styles.trustDot} />
-              Zero data sharing
+              <ShieldCheck size={14} className={styles.trustIcon} />
+              100% Privacy Focused
             </span>
           </div>
         </div>

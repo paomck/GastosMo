@@ -50,6 +50,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
+  align-items: stretch;
 }
 
 /* --- Card --- */
@@ -102,6 +103,8 @@
   color: var(--accent-amber-light);
   font-weight: 500;
   margin-bottom: 0.85rem;
+  line-height: 1.5;
+  min-height: 2.65em;
 }
 
 .cardDescription {

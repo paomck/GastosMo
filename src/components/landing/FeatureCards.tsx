@@ -9,7 +9,7 @@ const features = [
     icon: Target,
     iconColor: '#C9923A',
     title: 'Rebate Tracker',
-    subtitle: 'Never miss your 8.88% cashback window',
+    subtitle: 'Never miss your highest cashback window',
     description:
       'Automatically track rebate tiers across all cards. Get notified the moment you hit a threshold and know exactly how much you\'ve earned this month.',
     stat: '8.88%',
@@ -33,7 +33,7 @@ const features = [
     title: 'Fee Shield',
     subtitle: 'Proactive alerts before annual fees hit',
     description:
-      'Never get surprised by annual fees again. GastosMo monitors your card renewal dates and alerts you 30 days in advance so you can decide to keep or cancel.',
+      'Never get surprised by annual fees again. GastosMo monitors your card renewal dates and alerts you 30 days in advance — so you can decide to keep or cancel before you\'re charged.',
     stat: '30d',
     statLabel: 'advance fee warning',
   },

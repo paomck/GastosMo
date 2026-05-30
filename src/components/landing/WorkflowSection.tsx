@@ -1,7 +1,7 @@
 'use client';
 
 import styles from './WorkflowSection.module.css';
-import { ArrowUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export default function WorkflowSection() {
   const steps = [
@@ -135,10 +135,11 @@ export default function WorkflowSection() {
           </div>
         </div>
 
-        {/* Bottom Centered Back-to-Top CTA Link */}
+        {/* Bottom Centered CTA Button */}
         <div className={styles.bottomLinkContainer}>
-          <a href="#top" onClick={scrollToTop} className={styles.bottomLink}>
-            Ready? Connect your cards <ArrowUp size={14} className={styles.arrowIcon} />
+          <a href="#top" onClick={scrollToTop} className={styles.bottomCta}>
+            Get Started — It's Free
+            <ArrowRight size={18} />
           </a>
         </div>
       </div>
