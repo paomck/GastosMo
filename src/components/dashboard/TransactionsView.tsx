@@ -7,8 +7,8 @@ import {
   currentMonth,
   type Transaction 
 } from '@/lib/firestore';
-import { CARDS, getCardCycleStatus, type CardId } from '@/lib/cards';
-import { Edit2, Trash2, ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
+import { CARDS, getCardCycleStatus, type CardId, getCycleMonth } from '@/lib/cards';
+import { Edit2, Trash2, ChevronLeft, ChevronRight, XCircle, CheckCircle } from 'lucide-react';
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
 interface TransactionsViewProps {
@@ -17,6 +17,9 @@ interface TransactionsViewProps {
   onEdit: (t: Transaction) => void;
   onDelete: (t: Transaction) => void;
   ewRebateEarned: number;
+  userLimits?: Record<string, import('@/lib/firestore').UserCardConfig>;
+  paidCycles?: Record<string, boolean>;
+  onUpdatePaidCycles?: (cycles: Record<string, boolean>) => Promise<void>;
 }
 
 export default function TransactionsView({
@@ -24,7 +27,10 @@ export default function TransactionsView({
   allTransactions,
   onEdit,
   onDelete,
-  ewRebateEarned
+  ewRebateEarned,
+  userLimits,
+  paidCycles,
+  onUpdatePaidCycles
 }: TransactionsViewProps) {
   const [selectedCardId, setSelectedCardId] = useState<CardId | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -39,6 +45,26 @@ export default function TransactionsView({
   // so pageIndex + 1 starts after it. pageTokens[0] is null (first page starts after nothing).
   const [pageTokens, setPageTokens] = useState<(QueryDocumentSnapshot<DocumentData> | null)[]>([null]);
 
+  const activeMonth = useMemo(() => {
+    if (!selectedCardId) return currentMonth();
+    const closeDay = userLimits?.[selectedCardId]?.closeDay || CARDS[selectedCardId].closeDay;
+    return getCycleMonth(new Date(), closeDay);
+  }, [selectedCardId, userLimits]);
+
+  const cycleId = selectedCardId ? `${selectedCardId}-${activeMonth}` : null;
+  const isPaid = cycleId ? !!paidCycles?.[cycleId] : false;
+
+  const togglePaid = async () => {
+    if (!cycleId || !onUpdatePaidCycles || !paidCycles) return;
+    const newPaid = { ...paidCycles };
+    if (newPaid[cycleId]) {
+      delete newPaid[cycleId];
+    } else {
+      newPaid[cycleId] = true;
+    }
+    await onUpdatePaidCycles(newPaid);
+  };
+
   // Fetch count and reset pagination whenever the card filter changes
   useEffect(() => {
     if (!userId) return;
@@ -46,8 +72,7 @@ export default function TransactionsView({
     const initPagination = async () => {
       setLoading(true);
       try {
-        const month = currentMonth();
-        const count = await getTransactionsCount(userId, month, selectedCardId);
+        const count = await getTransactionsCount(userId, activeMonth, selectedCardId);
         setTotalCount(count);
         const pages = Math.ceil(count / 8) || 1;
         setTotalPages(pages);
@@ -56,7 +81,7 @@ export default function TransactionsView({
         setPageTokens([null]);
         setCurrentPage(1);
 
-        const { txns, lastVisible } = await fetchPaginatedTransactions(userId, month, 8, null, selectedCardId);
+        const { txns, lastVisible } = await fetchPaginatedTransactions(userId, activeMonth, 8, null, selectedCardId);
         setTransactions(txns);
         
         if (pages > 1) {
@@ -78,8 +103,7 @@ export default function TransactionsView({
     
     const syncWithDatabase = async () => {
       try {
-        const month = currentMonth();
-        const count = await getTransactionsCount(userId, month, selectedCardId);
+        const count = await getTransactionsCount(userId, activeMonth, selectedCardId);
         setTotalCount(count);
         const pages = Math.ceil(count / 8) || 1;
         setTotalPages(pages);
@@ -88,7 +112,7 @@ export default function TransactionsView({
         
         // Fetch fresh data for the target page using the corresponding page token
         const cursor = pageTokens[targetPage - 1] || null;
-        const { txns, lastVisible } = await fetchPaginatedTransactions(userId, month, 8, cursor, selectedCardId);
+        const { txns, lastVisible } = await fetchPaginatedTransactions(userId, activeMonth, 8, cursor, selectedCardId);
         
         setTransactions(txns);
         setCurrentPage(targetPage);
@@ -113,7 +137,6 @@ export default function TransactionsView({
 
     setLoading(true);
     try {
-      const month = currentMonth();
       let currentTokens = [...pageTokens];
       
       // If we don't have the token for this page yet, we need to fetch sequentially to populate tokens
@@ -125,7 +148,7 @@ export default function TransactionsView({
         
         let cursor = currentTokens[lastLoadedPage - 1];
         for (let p = lastLoadedPage; p < targetPage; p++) {
-          const { lastVisible } = await fetchPaginatedTransactions(userId, month, 8, cursor, selectedCardId);
+          const { lastVisible } = await fetchPaginatedTransactions(userId, activeMonth, 8, cursor, selectedCardId);
           currentTokens[p] = lastVisible;
           cursor = lastVisible;
         }
@@ -134,7 +157,7 @@ export default function TransactionsView({
 
       // Query page using computed cursor
       const cursor = currentTokens[targetPage - 1];
-      const { txns, lastVisible } = await fetchPaginatedTransactions(userId, month, 8, cursor, selectedCardId);
+      const { txns, lastVisible } = await fetchPaginatedTransactions(userId, activeMonth, 8, cursor, selectedCardId);
       
       if (targetPage < totalPages) {
         currentTokens[targetPage] = lastVisible;
@@ -154,9 +177,9 @@ export default function TransactionsView({
     if (!selectedCardId) return 0;
     // Calculate total spend in current month for the selected card
     return allTransactions
-      .filter(t => t.cardId === selectedCardId && t.month === currentMonth())
+      .filter(t => t.cardId === selectedCardId && t.month === activeMonth)
       .reduce((acc, t) => acc + t.amount, 0);
-  }, [allTransactions, selectedCardId]);
+  }, [allTransactions, selectedCardId, activeMonth]);
 
   const dueDateStr = useMemo(() => {
     if (!selectedCardId) return '';
@@ -183,11 +206,24 @@ export default function TransactionsView({
           
           {selectedCardId && (
             <div className={styles.summary}>
+              <span className={styles.summaryLabel}>CYCLE:</span>
+              <span className={styles.summaryValue}>{activeMonth}</span>
+              <span className={styles.summaryDivider}>|</span>
               <span className={styles.summaryLabel}>TOTAL OWED:</span>
-              <span className={styles.summaryValue}>₱{totalOwed.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+              <span className={`${styles.summaryValue} ${isPaid ? styles.paidValue : ''}`}>
+                ₱{totalOwed.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </span>
               <span className={styles.summaryDivider}>|</span>
               <span className={styles.summaryLabel}>DUE:</span>
               <span className={styles.summaryValue}>{dueDateStr}</span>
+              {isPaid && <span className={styles.paidBadge}>PAID</span>}
+              <button 
+                className={`${styles.paidToggleBtn} ${isPaid ? styles.isPaid : ''}`} 
+                onClick={togglePaid}
+              >
+                <CheckCircle size={14} />
+                {isPaid ? "Paid" : "Mark Paid"}
+              </button>
             </div>
           )}
         </div>

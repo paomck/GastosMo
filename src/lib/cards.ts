@@ -416,3 +416,16 @@ export function getCardCycleStatus(cardId: CardId, userConfig?: UserCardConfig):
 
   return { status, closeDate: targetClose, dueDate: targetDue };
 }
+
+/**
+ * Returns the billing cycle month (YYYY-MM) for a given transaction date and card close day.
+ * If the transaction happens after the close day, it belongs to the next month's billing cycle.
+ */
+export function getCycleMonth(date: Date, closeDay: number): string {
+  const d = new Date(date);
+  if (d.getDate() > closeDay) {
+    // Moves to next month's cycle
+    d.setMonth(d.getMonth() + 1);
+  }
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}

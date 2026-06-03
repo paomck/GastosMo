@@ -2,8 +2,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import styles from './RecentTransactions.module.css';
 import { subscribeToRecentTransactions, currentMonth, type Transaction } from '@/lib/firestore';
-import { CARDS, getCardCycleStatus, type CardId } from '@/lib/cards';
-import { Edit2, Trash2, XCircle } from 'lucide-react';
+import { CARDS, getCardCycleStatus, type CardId, getCycleMonth } from '@/lib/cards';
+import { Edit2, Trash2, XCircle, CheckCircle } from 'lucide-react';
 
 interface RecentTransactionsProps {
   userId: string;
@@ -13,6 +13,9 @@ interface RecentTransactionsProps {
   onDelete: (t: Transaction) => void;
   ewRebateEarned: number;
   onViewAll: () => void;
+  userLimits?: Record<string, import('@/lib/firestore').UserCardConfig>;
+  paidCycles?: Record<string, boolean>;
+  onUpdatePaidCycles?: (cycles: Record<string, boolean>) => Promise<void>;
 }
 
 export default function RecentTransactions({ 
@@ -22,7 +25,10 @@ export default function RecentTransactions({
   onEdit, 
   onDelete,
   ewRebateEarned,
-  onViewAll
+  onViewAll,
+  userLimits,
+  paidCycles,
+  onUpdatePaidCycles
 }: RecentTransactionsProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +37,14 @@ export default function RecentTransactions({
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
-    const month = currentMonth();
+    let month = currentMonth();
+    if (selectedCardId) {
+      const closeDay = userLimits?.[selectedCardId]?.closeDay || CARDS[selectedCardId].closeDay;
+      month = getCycleMonth(new Date(), closeDay);
+    }
+    
+    const cycleId = selectedCardId ? `${selectedCardId}-${month}` : null;
+    
     const unsub = subscribeToRecentTransactions(
       userId,
       month,
@@ -56,6 +69,26 @@ export default function RecentTransactions({
     return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }, [selectedCardId]);
 
+  const activeMonth = useMemo(() => {
+    if (!selectedCardId) return currentMonth();
+    const closeDay = userLimits?.[selectedCardId]?.closeDay || CARDS[selectedCardId].closeDay;
+    return getCycleMonth(new Date(), closeDay);
+  }, [selectedCardId, userLimits]);
+
+  const cycleId = selectedCardId ? `${selectedCardId}-${activeMonth}` : null;
+  const isPaid = cycleId ? !!paidCycles?.[cycleId] : false;
+
+  const togglePaid = async () => {
+    if (!cycleId || !onUpdatePaidCycles || !paidCycles) return;
+    const newPaid = { ...paidCycles };
+    if (newPaid[cycleId]) {
+      delete newPaid[cycleId];
+    } else {
+      newPaid[cycleId] = true;
+    }
+    await onUpdatePaidCycles(newPaid);
+  };
+
   return (
     <div className={`glass-card ${styles.container}`}>
       <div className={styles.header}>
@@ -67,10 +100,20 @@ export default function RecentTransactions({
           {selectedCardId && (
             <div className={styles.summary}>
               <span className={styles.summaryLabel}>TOTAL OWED:</span>
-              <span className={styles.summaryValue}>₱{totalOwed.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+              <span className={`${styles.summaryValue} ${isPaid ? styles.paidValue : ''}`}>
+                ₱{totalOwed.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </span>
               <span className={styles.summaryDivider}>|</span>
               <span className={styles.summaryLabel}>DUE:</span>
               <span className={styles.summaryValue}>{dueDateStr}</span>
+              {isPaid && <span className={styles.paidBadge}>PAID</span>}
+              <button 
+                className={`${styles.paidToggleBtn} ${isPaid ? styles.isPaid : ''}`} 
+                onClick={togglePaid}
+              >
+                <CheckCircle size={14} />
+                {isPaid ? "Paid" : "Mark Paid"}
+              </button>
             </div>
           )}
         </div>

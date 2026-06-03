@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import styles from './CardArt.module.css';
 import { CARDS, getCardCycleStatus, type CardId } from '@/lib/cards';
-import { Calendar, CreditCard as CardIcon, Info } from 'lucide-react';
+import { Calendar, CreditCard as CardIcon, Info, CheckCircle } from 'lucide-react';
 
 import type { UserCardConfig } from '@/lib/firestore';
 
@@ -14,13 +14,15 @@ interface CardArtProps {
   userConfig?: UserCardConfig;
   active?: boolean;
   onClick?: () => void;
+  isPaid?: boolean;
+  onTogglePaid?: (e: React.MouseEvent) => void;
 }
 
 const LAST4: Record<string, string> = {
   eastwest: '7890', 'bdo-amex': '1234', 'bdo-diamond': '4321',
 };
 
-export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, creditLimit, userConfig, active, onClick }: CardArtProps) {
+export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, creditLimit, userConfig, active, onClick, isPaid, onTogglePaid }: CardArtProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const card = CARDS[cardId];
   const actualLimit = creditLimit || card.creditLimit;
@@ -50,6 +52,14 @@ export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, cred
           
           <button className={styles.flipBtn} onClick={toggleFlip} title="View Details">
             <Info size={14} />
+          </button>
+          
+          <button 
+            className={`${styles.paidBtn} ${isPaid ? styles.isPaid : ''}`} 
+            onClick={onTogglePaid} 
+            title={isPaid ? "Mark as Unpaid" : "Mark as Paid"}
+          >
+            <CheckCircle size={14} />
           </button>
 
       {/* Shine overlay */}
@@ -85,9 +95,10 @@ export default function CardArt({ cardId, monthSpend = 0, rewardEarned = 0, cred
 
       {/* Bottom row */}
       <div className={styles.bottom}>
-        <div>
+        <div style={{ position: 'relative' }}>
+          {isPaid && <div className={styles.paidStamp}>PAID</div>}
           <div className={styles.label} style={{ color: card.mutedColor }}>This Month</div>
-          <div className={styles.value} style={{ color: card.textColor }}>
+          <div className={`${styles.value} ${isPaid ? styles.valueStrikethrough : ''}`} style={{ color: card.textColor }}>
             ₱{monthSpend.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </div>
         </div>

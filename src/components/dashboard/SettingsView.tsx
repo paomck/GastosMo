@@ -2,14 +2,17 @@
 import { useState } from 'react';
 import styles from './SettingsView.module.css';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { User, Lock, Eye, EyeOff, Mail, Download } from 'lucide-react';
-import type { Transaction } from '@/lib/firestore';
+import { User, Lock, Eye, EyeOff, Mail, Download, RefreshCw } from 'lucide-react';
+import { updateTransaction, type Transaction, type UserCardConfig } from '@/lib/firestore';
+import { CARDS, getCycleMonth } from '@/lib/cards';
 
 interface SettingsViewProps {
   transactions: Transaction[];
+  userId: string;
+  userLimits: Record<string, UserCardConfig>;
 }
 
-export default function SettingsView({ transactions }: SettingsViewProps) {
+export default function SettingsView({ transactions, userId, userLimits }: SettingsViewProps) {
   const { user, updateProfileName, updateUserPassword } = useAuth();
   
   // Profile State
@@ -24,6 +27,10 @@ export default function SettingsView({ transactions }: SettingsViewProps) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+
+  // Migration State
+  const [migrationLoading, setMigrationLoading] = useState(false);
+  const [migrationMsg, setMigrationMsg] = useState<{ type: 'error' | 'success', text: string } | null>(null);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +103,37 @@ export default function SettingsView({ transactions }: SettingsViewProps) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleMigrateBillingCycles = async () => {
+    if (!transactions.length || !userId) return;
+    setMigrationLoading(true);
+    setMigrationMsg(null);
+    let updatedCount = 0;
+    
+    try {
+      for (const t of transactions) {
+        if (!t.id) continue;
+        const closeDay = userLimits[t.cardId]?.closeDay || CARDS[t.cardId].closeDay;
+        const correctMonth = getCycleMonth(t.date.toDate(), closeDay);
+        
+        if (t.month !== correctMonth) {
+          await updateTransaction(t.id, { month: correctMonth });
+          updatedCount++;
+        }
+      }
+      setMigrationMsg({ 
+        type: 'success', 
+        text: `Migration complete. Updated ${updatedCount} transactions to use billing cycle months.` 
+      });
+    } catch (err: unknown) {
+      setMigrationMsg({ 
+        type: 'error', 
+        text: (err as Error).message || 'Migration failed.' 
+      });
+    } finally {
+      setMigrationLoading(false);
+    }
   };
 
   return (
@@ -229,6 +267,36 @@ export default function SettingsView({ transactions }: SettingsViewProps) {
           <Download size={16} />
           Export {transactions.length} Transactions (CSV)
         </button>
+      </section>
+
+      {/* Advanced Maintenance Section */}
+      <section className={`glass-card ${styles.section}`}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>System Maintenance</h2>
+          <p className={styles.subtitle}>Run one-time scripts to ensure data consistency.</p>
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <button 
+            className={styles.submitBtn} 
+            onClick={handleMigrateBillingCycles} 
+            disabled={migrationLoading || transactions.length === 0}
+            style={{ width: 'auto', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <RefreshCw size={16} className={migrationLoading ? 'animate-spin' : ''} />
+            {migrationLoading ? 'Migrating...' : 'Migrate to Billing Cycle Tagging'}
+          </button>
+          
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            This ensures all your transactions are correctly categorized into their respective billing cycles based on your statement dates, rather than raw calendar months. You only need to run this once.
+          </p>
+
+          {migrationMsg && (
+            <div className={migrationMsg.type === 'error' ? styles.errorMsg : styles.successMsg}>
+              {migrationMsg.text}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );

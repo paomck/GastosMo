@@ -6,6 +6,7 @@ import { checkMerchantEligibility, getMerchantStatus } from '@/lib/merchantRules
 import { X, Plus, CreditCard, DollarSign, Store, Tag, Sparkles, Info, HelpCircle } from 'lucide-react';
 import { addTransaction, updateTransaction, currentMonth, type Transaction, type UserCardConfig } from '@/lib/firestore';
 import { Timestamp } from 'firebase/firestore';
+import { getCycleMonth } from '@/lib/cards';
 
 interface AddTransactionDialogProps {
   userId: string;
@@ -45,7 +46,9 @@ export default function AddTransactionDialog({ userId, ewRebateEarned, initialTr
 
     setLoading(true);
     const numAmount = parseFloat(amount);
-    const month = initialTransaction?.month || currentMonth();
+    
+    const closeDay = userLimits?.[cardId]?.closeDay || CARDS[cardId].closeDay;
+    const month = initialTransaction?.month || getCycleMonth(new Date(), closeDay);
 
     let rebate = 0;
     let points = 0;

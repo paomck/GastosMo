@@ -102,6 +102,7 @@ export interface UserCardConfig {
 export interface UserSettings {
   creditLimits?: Record<string, number>;
   cardConfigs?: Record<string, UserCardConfig>;
+  paidCycles?: Record<string, boolean>; // e.g., 'eastwest-2026-05': true
 }
 
 export async function updateUserSettings(userId: string, settings: Partial<UserSettings>): Promise<void> {

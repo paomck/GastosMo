@@ -151,8 +151,15 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
                   <WalletHUD 
                     stats={stats} 
                     onSelectCard={(id) => setSelectedCardId(id === selectedCardId ? null : id)} 
-                    activeCardId={selectedCardId || undefined} 
+                    activeCardId={selectedCardId || undefined}
                     userLimits={settings.cardConfigs || {}}
+                    paidCycles={settings.paidCycles || {}}
+                    onUpdatePaidCycles={async (newPaidCycles) => {
+                      if (user?.uid) {
+                        const { updateUserSettings } = await import('@/lib/firestore');
+                        await updateUserSettings(user.uid, { paidCycles: newPaidCycles });
+                      }
+                    }}
                   />
                 </div>
 
@@ -173,6 +180,14 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
                         onDelete={setDeletingTxn}
                         ewRebateEarned={stats.ewRebate}
                         onViewAll={() => setCurrentView('transactions')}
+                        userLimits={settings.cardConfigs || {}}
+                        paidCycles={settings.paidCycles || {}}
+                        onUpdatePaidCycles={async (newPaidCycles) => {
+                          if (user?.uid) {
+                            const { updateUserSettings } = await import('@/lib/firestore');
+                            await updateUserSettings(user.uid, { paidCycles: newPaidCycles });
+                          }
+                        }}
                       />
                     </section>
                   </div>
@@ -194,7 +209,11 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
           {currentView === 'analytics' && <AnalyticsView stats={stats} transactions={all} />}
           {currentView === 'settings' && (
             <div className="animate-fade-up">
-              <SettingsView transactions={all} />
+              <SettingsView 
+                transactions={all}
+                userId={user?.uid || ''}
+                userLimits={settings.cardConfigs || {}}
+              />
             </div>
           )}
           {currentView === 'transactions' && (
@@ -205,6 +224,14 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
                 onEdit={setEditingTxn}
                 onDelete={setDeletingTxn}
                 ewRebateEarned={stats.ewRebate}
+                userLimits={settings.cardConfigs || {}}
+                paidCycles={settings.paidCycles || {}}
+                onUpdatePaidCycles={async (newPaidCycles) => {
+                  if (user?.uid) {
+                    const { updateUserSettings } = await import('@/lib/firestore');
+                    await updateUserSettings(user.uid, { paidCycles: newPaidCycles });
+                  }
+                }}
               />
             </div>
           )}

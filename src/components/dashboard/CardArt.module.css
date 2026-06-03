@@ -94,6 +94,55 @@
   transform: scale(1.1);
 }
 
+/* --- Paid Button --- */
+.paidBtn {
+  position: absolute;
+  top: 10px;
+  right: 44px; /* Next to flipBtn */
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s;
+}
+.paidBtn:hover {
+  background: rgba(16, 185, 129, 0.4);
+  transform: scale(1.1);
+}
+.paidBtn.isPaid {
+  background: rgba(16, 185, 129, 0.9);
+  border-color: rgba(16, 185, 129, 1);
+  color: #fff;
+}
+
+/* --- Paid Stamp & Strikethrough --- */
+.paidStamp {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  color: #10B981;
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  transform: rotate(-10deg);
+  border: 2px solid #10B981;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.1);
+  z-index: 5;
+}
+.valueStrikethrough {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
 /* --- Back Content --- */
 .backContent {
   height: 100%;

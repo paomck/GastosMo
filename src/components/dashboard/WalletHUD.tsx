@@ -1,17 +1,20 @@
 'use client';
 import styles from './WalletHUD.module.css';
 import CardArt from './CardArt';
-import { CARD_ORDER, type CardId } from '@/lib/cards';
+import { CARD_ORDER, type CardId, getCycleMonth, CARDS } from '@/lib/cards';
 import type { MonthlyStats } from '@/lib/useTransactions';
+import { currentMonth } from '@/lib/firestore';
 
 interface WalletHUDProps {
   stats: MonthlyStats;
   onSelectCard: (id: CardId) => void;
   activeCardId?: CardId;
   userLimits: Record<string, import('@/lib/firestore').UserCardConfig>;
+  paidCycles?: Record<string, boolean>;
+  onUpdatePaidCycles?: (cycles: Record<string, boolean>) => Promise<void>;
 }
 
-export default function WalletHUD({ stats, onSelectCard, activeCardId, userLimits }: WalletHUDProps) {
+export default function WalletHUD({ stats, onSelectCard, activeCardId, userLimits, paidCycles, onUpdatePaidCycles }: WalletHUDProps) {
   // Calculate total owed and total credit limit across active cards
   const activeCards = CARD_ORDER.filter((id) => id in userLimits);
   
@@ -57,6 +60,23 @@ export default function WalletHUD({ stats, onSelectCard, activeCardId, userLimit
         {activeCards.map((id) => {
           const spend = stats.cardStats?.[id]?.spend || 0;
           const reward = stats.cardStats?.[id]?.reward || 0;
+          
+          const closeDay = userLimits?.[id]?.closeDay || CARDS[id].closeDay;
+          const activeMonth = getCycleMonth(new Date(), closeDay);
+          const cycleId = `${id}-${activeMonth}`;
+          const isPaid = !!paidCycles?.[cycleId];
+
+          const togglePaid = async (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (!onUpdatePaidCycles || !paidCycles) return;
+            const newPaid = { ...paidCycles };
+            if (newPaid[cycleId]) {
+              delete newPaid[cycleId];
+            } else {
+              newPaid[cycleId] = true;
+            }
+            await onUpdatePaidCycles(newPaid);
+          };
 
           return (
             <div key={id} className={styles.cardItem}>
@@ -68,6 +88,8 @@ export default function WalletHUD({ stats, onSelectCard, activeCardId, userLimit
                 userConfig={userLimits[id]}
                 active={activeCardId === id}
                 onClick={() => onSelectCard(id)}
+                isPaid={isPaid}
+                onTogglePaid={togglePaid}
               />
             </div>
           );
