@@ -170,11 +170,11 @@ export default function Dashboard({ onGoToLanding }: DashboardProps) {
                       <LootTracker monthlyRebate={stats.ewRebate} lifetimeRebate={stats.lifetimeRebate} />
                     </section>
 
-                    {/* Station 4: Spending Log */}
                     <section className={styles.station} style={{ marginTop: '2.5rem' }}>
                       <RecentTransactions 
                         userId={user?.uid || ''}
                         selectedCardId={selectedCardId}
+                        allTransactions={all}
                         onClearFilter={() => setSelectedCardId(null)}
                         onEdit={setEditingTxn}
                         onDelete={setDeletingTxn}

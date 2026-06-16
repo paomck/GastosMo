@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import styles from './RecentTransactions.module.css';
-import { subscribeToRecentTransactions, currentMonth, type Transaction } from '@/lib/firestore';
+import { currentMonth, type Transaction } from '@/lib/firestore';
 import { CARDS, getCardCycleStatus, type CardId, getCycleMonth } from '@/lib/cards';
 import { Edit2, Trash2, XCircle, CheckCircle } from 'lucide-react';
 
@@ -16,6 +16,7 @@ interface RecentTransactionsProps {
   userLimits?: Record<string, import('@/lib/firestore').UserCardConfig>;
   paidCycles?: Record<string, boolean>;
   onUpdatePaidCycles?: (cycles: Record<string, boolean>) => Promise<void>;
+  allTransactions: Transaction[];
 }
 
 export default function RecentTransactions({ 
@@ -28,52 +29,38 @@ export default function RecentTransactions({
   onViewAll,
   userLimits,
   paidCycles,
-  onUpdatePaidCycles
+  onUpdatePaidCycles,
+  allTransactions
 }: RecentTransactionsProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Subscribe to exactly the 5 most recent transactions for this month/card
-  useEffect(() => {
-    if (!userId) return;
-    setLoading(true);
-    let month = currentMonth();
-    if (selectedCardId) {
-      const closeDay = userLimits?.[selectedCardId]?.closeDay || CARDS[selectedCardId].closeDay;
-      month = getCycleMonth(new Date(), closeDay);
-    }
-    
-    const cycleId = selectedCardId ? `${selectedCardId}-${month}` : null;
-    
-    const unsub = subscribeToRecentTransactions(
-      userId,
-      month,
-      5,
-      selectedCardId,
-      (txns) => {
-        setTransactions(txns);
-        setLoading(false);
-      }
-    );
-    return () => unsub();
-  }, [userId, selectedCardId]);
-
-  const totalOwed = useMemo(() => {
-    if (!selectedCardId) return 0;
-    return transactions.reduce((acc, t) => acc + t.amount, 0);
-  }, [transactions, selectedCardId]);
-
-  const dueDateStr = useMemo(() => {
-    if (!selectedCardId) return '';
-    const { dueDate } = getCardCycleStatus(selectedCardId);
-    return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }, [selectedCardId]);
+  const [loading, setLoading] = useState(false);
 
   const activeMonth = useMemo(() => {
     if (!selectedCardId) return currentMonth();
     const closeDay = userLimits?.[selectedCardId]?.closeDay || CARDS[selectedCardId].closeDay;
     return getCycleMonth(new Date(), closeDay);
   }, [selectedCardId, userLimits]);
+
+  // Derive top 5 most recent transactions without cycle-month filtering
+  const transactions = useMemo(() => {
+    let filtered = allTransactions;
+    if (selectedCardId) {
+      filtered = filtered.filter(t => t.cardId === selectedCardId);
+    }
+    return filtered.slice(0, 5);
+  }, [allTransactions, selectedCardId]);
+
+  const totalOwed = useMemo(() => {
+    if (!selectedCardId) return 0;
+    return allTransactions
+      .filter(t => t.cardId === selectedCardId && t.month === activeMonth)
+      .reduce((acc, t) => acc + t.amount, 0);
+  }, [allTransactions, selectedCardId, activeMonth]);
+
+  const dueDateStr = useMemo(() => {
+    if (!selectedCardId) return '';
+    const { dueDate } = getCardCycleStatus(selectedCardId);
+    return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }, [selectedCardId]);
 
   const cycleId = selectedCardId ? `${selectedCardId}-${activeMonth}` : null;
   const isPaid = cycleId ? !!paidCycles?.[cycleId] : false;
